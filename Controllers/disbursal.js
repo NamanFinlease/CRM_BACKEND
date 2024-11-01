@@ -8,7 +8,7 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
     if (req.activeRole === "disbursalManager") {
         const page = parseInt(req.query.page) || 1; // current page
         const limit = parseInt(req.query.limit) || 10; // items per page
-        // const skip = (page - 1) * limit;
+        const skip = (page - 1) * limit;
 
         const query = {
             disbursalManagerId: null,
