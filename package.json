@@ -1,0 +1,40 @@
+{
+    "name": "crm-backend",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start index.js --name crm-backend", 
+    "restart": "pm2 restart crm-backend",             
+    "stop": "pm2 stop crm-backend",                   
+    "logs": "pm2 logs crm-backend",                   
+    "delete": "pm2 delete crm-backend",               
+    "dev": "nodemon index.js"                         
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "aws-sdk": "^2.1691.0",
+        "axios": "^1.7.7",
+        "bcrypt": "^5.1.1",
+        "body-parser": "^1.20.2",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "csv-parser": "^3.0.0",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "handlebars": "^4.7.8",
+        "http": "^0.0.1-security",
+        "jsonwebtoken": "^9.0.2",
+        "mongoose": "^8.6.1",
+        "morgan": "^1.10.0",
+        "multer": "^1.4.5-lts.1",
+        "pm2": "^5.4.2",
+        "puppeteer": "^23.5.3",
+        "winston": "^3.14.2",
+        "xml2js": "^0.6.2"
+    }
+}

@@ -1,0 +1,441 @@
+<div
+    style="
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 25px;
+        font-size: 14px;
+        border: solid 1px #ddd;
+        padding: 10px;
+    "
+>
+    <table width="667" border="0" align="center" style="padding: 0px 10px">
+        <tbody>
+            <!-- <tr>
+                <td colspan="2">
+                    <p style="color: #0363a3; font-size: 18px">
+                        <img
+                            src="https://publicramlella.s3.ap-south-1.amazonaws.com/public_assets/Header.jpg"
+                            alt="Sanctionletter-header"
+                            width="760"
+                            height="123"
+                            border="0"
+                        />
+                    </p>
+                </td>
+            </tr> -->
+            <tr>
+                <td align="right" style="color: #0363a3; font-size: 18px">
+                    Date: {{sanctionDate}}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>To,</strong></td>
+            </tr>
+            <tr>
+                <td><strong>{{title}}</strong> {{fullname}}</td>
+            </tr>
+            <tr>
+                <td>{{residenceAddress}}</td>
+            </tr>
+            <tr>
+                <td>{{stateCountry}}</td>
+            </tr>
+            <tr>
+                <td><strong>Contact No. :</strong> +91-{{mobile}}</td>
+            </tr>
+
+            <tr>
+                <td>
+                    Thank you for showing your interest in Speedoloan and giving
+                    us an opportunity to serve you.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    We are pleased to inform you that your loan application has
+                    been approved as per the below mentioned terms and
+                    conditions.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>
+                        Speedoloan, a brand name under Naman Finlease Private
+                        Limited (RBI approved NBFC – Reg No.14.01466) S-370,
+                        Panchsheel Park, Near Panchsheel Park Metro Station Gate
+                        NO. 1, New Delhi- 110017.
+                    </strong>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    This sanction will be subject to the following Terms and
+                    Conditions:
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <table
+                        width="100%"
+                        border="0"
+                        cellpadding="8"
+                        cellspacing="1"
+                        bgcolor="#ddd"
+                    >
+                        <tbody>
+                            <tr>
+                                <td
+                                    width="43%"
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Customer Name
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    {{fullname}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Sanctioned Loan Amount (Rs.)
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #d9534f;
+                                    "
+                                >
+                                    {{loanAmount}} /-
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Rate of Interest (%) per day
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #5bc0de;
+                                    "
+                                >
+                                    {{roi}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Date of Disbursal
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    {{disbursalDate}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Total Repayment Amount (Rs.)
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #d9534f;
+                                    "
+                                >
+                                    {{repaymentAmount}}/-
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Tenure in Days
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    {{tenure}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Repayment Date
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    {{repaymentDate}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Penal Interest (%) per day
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    {{penalInterest}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Processing Fee (Rs.)
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    {{processingFee}} /- (Inclusive of GST)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Repayment Cheque(s)
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    -
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Cheque drawn on (name of the Bank)
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    -
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Cheque and NACH Bouncing Charges (Rs.)
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    {{bouncedCharges}} /- per bouncing/dishonour
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #0363a3;
+                                        font-weight: bold;
+                                    "
+                                >
+                                    Annual Percentage Rate (%)
+                                </td>
+                                <td
+                                    style="
+                                        background-color: #ffffff;
+                                        padding: 8px;
+                                        color: #333;
+                                    "
+                                >
+                                    0
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Henceforth visiting (physically) your Workplace and
+                    Residence has your concurrence on it.
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    Kindly request you to go through above mentioned terms and
+                    conditions and provide your kind acceptance over E-mail so
+                    that we can process your loan for final disbursement.
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <strong style="color: #0363a3">Best Regards,</strong>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <strong style="color: #0363a3">Team RuppeOneLakh</strong>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <strong style="color: #0363a3"
+                        >(Brand Name for Naman Finlease Private Limited)</strong
+                    >
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    If you are not able to click on the accept button then
+                    please copy and paste this url in browser to proceed or
+                    click here .
+                    <a
+                        href="https://fintechcloud.in/loanAgreementLetterResponse?refstr=V2YOY11iBmMFZQJm"
+                    >
+                        https://fintechcloud.in/loanAgreementLetterResponse?refstr=V2YOY11iBmMFZQJm</a
+                    >
+                </td>
+            </tr>
+
+            <tr>
+                <td><strong>Kindly Note:</strong></td>
+            </tr>
+            <tr>
+                <td>
+                    You can Prepay/Repay the loan amount using our link REPAY
+                    LOAN
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Non-payment of loan on time will adversely affect your
+                    Credit score, further reducing your chances of getting loan
+                    again Upon approval the processing fee will be deducted from
+                    your Sanction amount and balance amount will be disbursed to
+                    your account.
+                </td>
+            </tr>
+            <tr>
+                <td>This Sanction letter is valid for 24 Hours only.</td>
+            </tr>
+            <!-- <tr>
+                <td colspan="2">
+                    <img
+                        src="https://publicramlella.s3.ap-south-1.amazonaws.com/public_assets/Footer.jpg"
+                        alt="Sanctionletter-footer"
+                        width="760"
+                        height="104"
+                    />
+                </td>
+            </tr> -->
+        </tbody>
+    </table>
+</div>
