@@ -51,8 +51,8 @@ export const sentBack = asyncHandler(async (req, res) => {
             throw new Error("Disbursal application could not be deleted");
         }
 
-        // application.isApproved = false;
-        // application.approvedBy = null;
+        application.isApproved = false;
+        application.approvedBy = null;
         application.isRecommended = false;
         application.recommendedBy = null;
         await application.save();
