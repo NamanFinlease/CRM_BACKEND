@@ -50,7 +50,7 @@ app.get("/", (req, res) => {
 app.use("/api/applications", applicationRouter); // Use the application routes
 app.use("/api/applicant", applicantRouter); // Use the applicant's routes
 app.use("/api/employees", employeeRouter); // Use the employee routes
-app.use("/api/disbursal", disbursalRouter); // Use the disbursal routes
+app.use("/api/disbursals", disbursalRouter); // Use the disbursal routes
 app.use("/api/leads", leadRouter); // Use the lead routes
 app.use("/api/sanction", sanctionRouter); // Use teh sanction letter
 app.use("/api/verify", verifyRouter); // Use the verify routes sevice to verify PAN and aadhaar

@@ -34,7 +34,7 @@ export const register = asyncHandler(async (req, res) => {
     // const empId = generateEmpId();
     const employee = await Employee.create({
         fName,
-        lName,
+        lName: lName ? lName : "",
         email,
         password,
         gender,

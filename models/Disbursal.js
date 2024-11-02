@@ -10,16 +10,30 @@ const disbursalSchema = new mongoose.Schema(
         },
         channel: {
             type: String,
-            required: true,
         },
         mop: {
             type: String,
-            required: true,
         },
         disbursalManagerId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Employee",
         },
+        // onHold:{
+        //     type: Boolean,
+        //     default: false,
+        // },
+        // heldBy:{
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: "Employee",
+        // },
+        // isRejected:{
+        //     type: Boolean,
+        //     default: false,
+        // },
+        // rejectedBy:{
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: "Employee",
+        // },
         isRecommended: {
             type: Boolean,
             default: false,
@@ -38,7 +52,6 @@ const disbursalSchema = new mongoose.Schema(
         },
         disbursedAt: {
             type: Date,
-            required: true,
         },
     },
     { timestamps: true }

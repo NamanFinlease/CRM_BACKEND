@@ -7,7 +7,7 @@ import Application from "../models/Applications.js";
 // @access Private
 export const totalRecords = asyncHandler(async (req, res) => {
     const leads = await Lead.find({});
-    const applications = await Application.find({});
+    const applications = await Application.find({}).populate("lead");
 
     const totalLeads = leads.length;
     const newLeads = leads.filter(
@@ -23,7 +23,8 @@ export const totalRecords = asyncHandler(async (req, res) => {
             lead.screenerId &&
             !lead.onHold &&
             !lead.isRejected &&
-            !lead.isRecommended
+            !lead.isRecommended &&
+            !lead.recommendedBy
     );
 
     let heldLeads = leads.filter(
@@ -35,10 +36,17 @@ export const totalRecords = asyncHandler(async (req, res) => {
     );
 
     if (req.activeRole === "screener") {
-        allocatedLeads = allocatedLeads.filter(
-            (allocated) =>
+        allocatedLeads = allocatedLeads.filter((allocated) => {
+            console.log(
+                "screenerId and employee: ",
+                allocated.screenerId.toString(),
+                req.employee._id.toString()
+            );
+            return (
                 allocated.screenerId.toString() === req.employee._id.toString()
-        );
+            );
+        });
+        console.log(allocatedLeads);
 
         heldLeads = heldLeads.filter(
             (held) => held.heldBy.toString() === req.employee._id.toString()
@@ -57,21 +65,26 @@ export const totalRecords = asyncHandler(async (req, res) => {
         (application) =>
             application.creditManagerId &&
             !application.onHold &&
-            !application.isRejected
+            !application.isRejected &&
+            !application.isRecommended
     );
 
     let heldApplications = applications.filter(
         (application) =>
             application.creditManagerId &&
             application.onHold &&
-            !application.isRejected
+            !application.isRejected &&
+            !application.isRecommended &&
+            !application.isApproved
     );
 
     let rejectedApplications = applications.filter(
         (application) =>
             application.creditManagerId &&
             !application.onHold &&
-            application.isRejected
+            application.isRejected &&
+            !application.isRecommended &&
+            !application.isApproved
     );
     let sanctionedApplications = applications.filter(
         (application) =>
