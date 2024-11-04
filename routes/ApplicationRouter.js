@@ -24,9 +24,9 @@ const uploadFields = upload.fields([
     { name: "aadhaarFront", maxCount: 1 },
     { name: "aadhaarBack", maxCount: 1 },
     { name: "panCard", maxCount: 1 },
-    { name: "bankStatement", maxCount: 1 },
-    { name: "salarySlip", maxCount: 1 },
-    { name: "verificationVideo", maxCount: 1 },
+    { name: "bankStatement", maxCount: 10 }, // Allows up to 10 bank statements
+    { name: "salarySlip", maxCount: 10 }, // Allows up to 10 salary slips
+    { name: "others", maxCount: 10 },
 ]);
 
 // Other routes
