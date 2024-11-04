@@ -11,66 +11,76 @@ export const sentBack = asyncHandler(async (req, res) => {
 
     const lead = await Lead.findById(id);
 
-    // If sendTo is Credit Manager this will be used
-    const application = await Application.findOne({ lead: id })
-        .populate("lead")
-        .populate({ path: "creditManagerId", select: "fName mName lName" });
     let logs;
 
     if (req.activeRole === "sanctionHead") {
-        application.isRecommended = false;
-        application.recommendedBy = null;
-        await application.save();
-        logs = await postLogs(
-            lead._id,
-            `SENT BACK TO ${sendTo.toUpperCase()}`,
-            `${application.lead.fName} ${
-                application.lead.mName && ` ${application.lead.mName}`
-            }${application.lead.lName ?? ` ${application.lead.lName}`}`,
-            `Sent back by ${application.creditManagerId.fName} ${application.creditManagerId.lName}`,
-            `${reason}`
-        );
-    } else if (req.activeRole === "disbursalManager") {
-        // Find the disbursal application by matching it with the application and delete it
-        const disbursal = await Disbursal.findByIdAndDelete({
-            application: application._id.toString(),
-        })
-            .populate({
-                path: "application",
-                populate: {
-                    path: "lead",
-                },
-            })
-            .populate({
-                path: "disbursalManagerId",
-                select: "fName mName lName",
-            });
+        if (sendTo === "creditManager") {
+            // If sendTo is Credit Manager this will be used
+            const application = await Application.findOne({
+                lead: id,
+            }).populate("lead");
 
-        if (!disbursal) {
+            application.isRecommended = false;
+            application.recommendedBy = null;
+
+            logs = await postLogs(
+                lead._id,
+                `SENT BACK TO ${sendTo.toUpperCase()}`,
+                `${application.lead.fName} ${
+                    application.lead.mName && ` ${application.lead.mName}`
+                }${application.lead.lName ?? ` ${application.lead.lName}`}`,
+                `Sent back by ${req.employee.fName} ${req.employee.lName}`,
+                `${reason}`
+            );
+
+            await application.save();
+
+            res.json({ success: true, logs });
+        } else {
             res.status(400);
-            throw new Error("Disbursal application could not be deleted");
+            throw new Error(
+                `Sanction Head can not send the application directly to ${sendTo}!!`
+            );
         }
+    } else if (req.activeRole === "creditManager") {
+        if (sendTo === "screener") {
+            const deletedApplication = await Application.findByIdAndDelete({
+                lead: id,
+            })
+                .populate("lead")
+                .populate({
+                    path: "creditManagerId",
+                    select: "fName mName lName",
+                });
+            if (!deletedApplication) {
+                res.status(400);
+                throw new Error("Can not delete!!");
+            }
 
-        application.isApproved = false;
-        application.approvedBy = null;
-        application.isRecommended = false;
-        application.recommendedBy = null;
-        await application.save();
+            lead.isRecommended = false;
+            lead.recommendedBy = null;
+            await lead.save();
 
-        const employee = await Employee.findOne({
-            _id: req.employee._id.toString(),
-        });
-        const logs = await postLogs(
-            lead._id,
-            `SENT BACK TO ${sendTo.toUpperCase()}`,
-            `${application.lead.fName} ${
-                application.lead.mName && ` ${application.lead.mName}`
-            }${application.lead.lName ?? ` ${application.lead.lName}`}`,
-            `Sent back by ${application.creditManagerId.fName} ${application.creditManagerId.lName}`,
-            `${reason}`
-        );
-
-        res.json({ success: true, logs });
+            logs = await postLogs(
+                lead._id,
+                `SENT BACK TO ${sendTo.toUpperCase()}`,
+                `${deletedApplication.lead.fName} ${
+                    deletedApplication.lead.mName &&
+                    ` ${deletedApplication.lead.mName}`
+                }${
+                    deletedApplication.lead.lName ??
+                    ` ${deletedApplication.lead.lName}`
+                }`,
+                `Sent back by ${deletedApplication.creditManagerId.fName} ${deletedApplication.creditManagerId.lName}`,
+                `${reason}`
+            );
+            res.json({ success: true, logs });
+        } else {
+            res.status(400);
+            throw new Error(
+                `Sanction Head can not send the application directly to ${sendTo}!!`
+            );
+        }
     } else {
         res.status(401);
         throw new Error("You are not authorized to sent back the application");

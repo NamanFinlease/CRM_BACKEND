@@ -78,5 +78,6 @@ export const verifyBank = async (
         }
     } catch (error) {
         console.log({ status: error.status, message: error.message });
+        return { status: error.status, success: false, message: error.message };
     }
 };
