@@ -98,7 +98,7 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
 // @desc Get Allocated Disbursal depends on whether if it's admin or a Disbursal Manager.
 // @route GET /api/disbursal/allocated
 // @access Private
-export const allocatedApplications = asyncHandler(async (req, res) => {
+export const allocatedDisbursal = asyncHandler(async (req, res) => {
     let query;
     if (req.activeRole === "admin" || req.activeRole === "disbursalHead") {
         query = {
@@ -142,4 +142,26 @@ export const allocatedApplications = asyncHandler(async (req, res) => {
         currentPage: page,
         disbursals,
     });
+});
+
+// @desc Recommend a disbursal application
+// @route /api/disbursals/recommend/:id
+// @access Private
+export const recommendDisbursal = asyncHandler(async (req, res) => {
+    if (req.activeRole === "disbursalManager") {
+        const { id } = req.params;
+
+        // Find the application by its ID
+        const disbursal = await Disbursal.findById(id)
+            .populate({
+                path: "application",
+                populate: {
+                    path: "lead",
+                },
+            })
+            .populate({
+                path: "disbursalManagerId",
+                select: "fName mName lName",
+            });
+    }
 });

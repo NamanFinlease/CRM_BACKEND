@@ -24,7 +24,8 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
         const applications = await Application.find(query)
             .skip(skip)
             .limit(limit)
-            .populate("lead");
+            .populate("lead")
+            .populate({ path: "recommendedBy", select: "fName mName lName" });
 
         const totalApplications = await Application.countDocuments(query);
 
@@ -125,7 +126,8 @@ export const sanctioned = asyncHandler(async (req, res) => {
         const applications = await Application.find(query)
             .skip(skip)
             .limit(limit)
-            .populate("lead");
+            .populate("lead")
+            .populate({ path: "approvedBy", select: "fName mName lName" });
 
         const totalApplications = await Application.countDocuments(query);
 

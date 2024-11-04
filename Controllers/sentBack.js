@@ -44,7 +44,7 @@ export const sentBack = asyncHandler(async (req, res) => {
         }
     } else if (req.activeRole === "creditManager") {
         if (sendTo === "screener") {
-            const deletedApplication = await Application.findByIdAndDelete({
+            const deletedApplication = await Application.findOneAndDelete({
                 lead: id,
             })
                 .populate("lead")
