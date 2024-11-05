@@ -1,6 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Disbursal from "../models/Disbursal.js";
 import Employee from "../models/Employees.js";
+import { postLogs } from "./logs.js";
 
 // @desc Get new disbursal
 // @route GET /api/disbursals/
@@ -14,6 +15,7 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
         const query = {
             disbursalManagerId: null,
             isRecommended: { $ne: true },
+            isApproved: { $ne: true },
         };
 
         const disbursals = await Disbursal.find(query)
@@ -85,10 +87,11 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
     const logs = await postLogs(
         disbursal.application.lead._id,
         "DISBURSAL IN PROCESS",
-        `${disbursal.application.lead.fName} ${
-            disbursal.application.lead.mName ?? ""
+        `${disbursal.application.lead.fName}${
+            disbursal.application.lead.mName &&
+            ` ${disbursal.application.lead.mName}`
         } ${disbursal.application.lead.lName}`,
-        `Application allocated to ${employee.fName} ${employee.lName}`
+        `Disbursal application approved by ${req.employee.fName} ${req.employee.lName}`
     );
 
     // Send the updated lead as a JSON response
@@ -105,7 +108,8 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
             disbursalManagerId: {
                 $ne: null,
             },
-            isRecommended: { $ne: true },
+            isRecommended: { $eq: true },
+            isApproved: { $ne: true },
         };
     } else if (req.activeRole === "disbursalManager") {
         query = {
@@ -145,7 +149,7 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
 });
 
 // @desc Recommend a disbursal application
-// @route /api/disbursals/recommend/:id
+// @route PATCH /api/disbursals/recommend/:id
 // @access Private
 export const recommendDisbursal = asyncHandler(async (req, res) => {
     if (req.activeRole === "disbursalManager") {
@@ -155,13 +159,112 @@ export const recommendDisbursal = asyncHandler(async (req, res) => {
         const disbursal = await Disbursal.findById(id)
             .populate({
                 path: "application",
-                populate: {
-                    path: "lead",
-                },
+                populate: [{ path: "lead" }],
             })
             .populate({
                 path: "disbursalManagerId",
                 select: "fName mName lName",
             });
+
+        disbursal.isRecommended = true;
+        disbursal.recommendedBy = req.employee._id.toString();
+        await disbursal.save();
+
+        const logs = await postLogs(
+            disbursal.application.lead._id,
+            "DISBURSAL APPLICATION APPROVED. SENDING TO DISBURSAL HEAD",
+            `${disbursal.application.lead.fName}${
+                disbursal.application.lead.mName &&
+                ` ${disbursal.application.lead.mName}`
+            } ${disbursal.application.lead.lName}`,
+            `Application approved by ${req.employee.fName} ${req.employee.lName}`
+        );
+
+        return res.json({ success: true, logs });
     }
 });
+
+// @desc Get all the pending disbursal applications
+// @route GET /api/disbursals/pending
+// @access Private
+export const disbursalPending = asyncHandler(async (req, res) => {
+    if (
+        req.activeRole === "disbursalManager" ||
+        req.activeRole === "disbursalHead" ||
+        req.activeRole === "admin"
+    ) {
+        const page = parseInt(req.query.page) || 1; // current page
+        const limit = parseInt(req.query.limit) || 10; // items per page
+        const skip = (page - 1) * limit;
+
+        const query = {
+            disbursalManagerId: { $ne: null },
+            isRecommended: { $eq: true },
+            isApproved: { $ne: true },
+        };
+
+        const disbursals = await Disbursal.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate({
+                path: "application",
+                populate: {
+                    path: "lead",
+                },
+            });
+
+        const totalDisbursals = await Disbursal.countDocuments(query);
+
+        return res.json({
+            totalDisbursals,
+            totalPages: Math.ceil(totalDisbursals / limit),
+            currentPage: page,
+            disbursals,
+        });
+    } else {
+        res.status(401);
+        throw new Error("You are not authorized to check this data");
+    }
+});
+
+// @desc Get all the disbursed applications
+// @route GET /api/disbursals/disbursed
+// @access Private
+export const disbursed = asyncHandler(async (req, res) => {
+    if (req.activeRole === "disbursalHead" || req.activeRole === "admin") {
+        const page = parseInt(req.query.page) || 1; // current page
+        const limit = parseInt(req.query.limit) || 10; // items per page
+        const skip = (page - 1) * limit;
+
+        const query = {
+            disbursalManagerId: { $ne: null },
+            isApproved: { $eq: true },
+        };
+
+        const disbursals = await Disbursal.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate({
+                path: "application",
+                populate: {
+                    path: "lead",
+                },
+            });
+
+        const totalDisbursals = await Disbursal.countDocuments(query);
+
+        return res.json({
+            totalDisbursals,
+            totalPages: Math.ceil(totalDisbursals / limit),
+            currentPage: page,
+            disbursals,
+        });
+    } else {
+        res.status(401);
+        throw new Error("You are not authorized to check this data");
+    }
+});
+
+// @desc
+// @route PATCH /api/disbursals/
+// @access Private

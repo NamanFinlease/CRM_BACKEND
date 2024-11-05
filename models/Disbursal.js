@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 
 const disbursalSchema = new mongoose.Schema(
     {
+        _id: {
+            type: String,
+        },
         application: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Application",
@@ -56,6 +59,32 @@ const disbursalSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+// Pre-save hook to generate custom auto-incrementing _id
+disbursalSchema.pre("save", async function (next) {
+    if (this.isNew) {
+        try {
+            // Find the most recent disbursal record
+            const lastDisbursal = await mongoose
+                .model("Disbursal")
+                .findOne({})
+                .sort({ _id: -1 })
+                .exec();
+
+            // Extract the numeric part, increment it, or start from 1 if no previous record exists
+            const lastSequence = lastDisbursal
+                ? parseInt(lastDisbursal._id.slice(7))
+                : 1;
+            const newSequence = lastSequence + 1;
+
+            // Set the new _id with zero-padded sequence to 11 digits
+            this._id = `NMFSPE${String(newSequence).padStart(11, 0)}`;
+        } catch (error) {
+            return next(error);
+        }
+    }
+    next();
+});
 
 const Disbursal = mongoose.model("Disbursal", disbursalSchema);
 export default Disbursal;

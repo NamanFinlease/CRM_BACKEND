@@ -1,9 +1,11 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Application from "../models/Applications.js";
-import Disbursal from "../models/Disbursal.js";
 import { dateFormatter } from "../utils/dateFormatter.js";
+import Disbursal from "../models/Disbursal.js";
 import { generateSanctionLetter } from "../utils/sendsanction.js";
 import { getSanctionData } from "../utils/sanctionData.js";
+import { postLogs } from "./logs.js";
+
 import Lead from "../models/Leads.js";
 
 // @desc Get the forwarded applications
@@ -100,10 +102,16 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
         application.approvedBy = req.employee._id.toString();
         await application.save();
 
-        res.json({
-            success: true,
-            message: emailResponse.message,
-        });
+        const logs = await postLogs(
+            application.lead,
+            "APPLICATION APPROVED. SEND TO DISBURSAL",
+            `${application.applicant.fName}${
+                application.applicant.mName && ` ${application.applicant.mName}`
+            } ${application.applicant.lName}`,
+            `Application approved by ${req.employee.fName} ${req.employee.lName}`
+        );
+
+        return res.json({ success: true, logs });
     } else {
         res.status(401);
         throw new Error("You are not authorized!!");

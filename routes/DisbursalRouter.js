@@ -4,6 +4,9 @@ import {
     getDisbursal,
     allocateDisbursal,
     allocatedDisbursal,
+    recommendDisbursal,
+    disbursalPending,
+    disbursed,
 } from "../Controllers/disbursal.js";
 // import { onHold, unHold, getHold } from "../Controllers/holdUnhold.js";
 // import { rejected, getRejected } from "../Controllers/rejected.js";
@@ -19,5 +22,9 @@ router
     .route("/:id")
     .get(protect, getDisbursal)
     .patch(protect, allocateDisbursal);
+
+router.route("/recommend/:id").patch(protect, recommendDisbursal);
+router.route("/pending").get(protect, disbursalPending);
+router.route("/disbursed").get(protect, disbursed);
 
 export default router;

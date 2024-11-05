@@ -11,20 +11,18 @@ import { verifyBank } from "../utils/verifyBank.js";
 // @access Private
 export const applicantDetails = async (details = null) => {
     try {
-        const applicant = await Applicant.findOne({
+        // Define the criteria to find an existing applicant
+        const filter = {
             $and: [
                 { "personalDetails.personalEmail": details.personalEmail },
                 { "personalDetails.mobile": details.mobile }, // Check if Aadhaar matches
                 { "personalDetails.pan": details.pan }, // Check if PAN matches
                 { "personalDetails.aadhaar": details.aadhaar }, // Check if Aadhaar matches
             ],
-        });
+        };
 
-        if (applicant) {
-            return applicant;
-        }
-        // Create the new log initally
-        const newApplicant = await Applicant.create({
+        // Define the data to update if the applicant exists, or to create if not
+        const updateData = {
             personalDetails: {
                 fName: details.fName,
                 mName: details.mName,
@@ -39,8 +37,14 @@ export const applicantDetails = async (details = null) => {
                 pan: details.pan,
                 aadhaar: details.aadhaar,
             },
+        };
+
+        // Find the applicant by criteria and update if found, or create a new one
+        const applicant = await Applicant.findOneAndUpdate(filter, updateData, {
+            upsert: true,
+            new: true,
         });
-        return newApplicant;
+        return applicant;
     } catch (error) {
         throw new Error(error.message);
     }
