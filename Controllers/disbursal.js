@@ -23,11 +23,9 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate({
                 path: "application",
-                populate: [
-                    { path: "lead" },
-                    { path: "creditManagerId" },
-                    { path: "approvedBy" },
-                ],
+                populate: {
+                    path: "lead",
+                },
             });
 
         const totalDisbursals = await Disbursal.countDocuments(query);
@@ -48,9 +46,11 @@ export const getDisbursal = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const disbursal = await Disbursal.findOne({ _id: id }).populate({
         path: "application",
-        populate: {
-            path: "lead",
-        },
+        populate: [
+            { path: "lead" },
+            { path: "creditManagerId" },
+            { path: "approvedBy" },
+        ],
     });
     const cam = await CamDetails.findOne({
         leadId: disbursal.application.lead._id,
