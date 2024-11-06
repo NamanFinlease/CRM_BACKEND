@@ -45,7 +45,7 @@ export const generateSanctionLetter = async (
             url: "https://api.zeptomail.in/v1.1/email",
             headers: {
                 accept: "application/json",
-                authorization: `Zoho-enczapikey ${apiKey}`,
+                authorization: `Zoho-enczapikey PHtE6r1eFL/rjzF68UcBsPG/Q8L1No16/b5jKgkU44hBCPMFS00Eo49/xjO/ohkqU6JBRqTJy45v572e4u/TcWflNm1JWGqyqK3sx/VYSPOZsbq6x00etVkdd03eVoLue95s0CDfv9fcNA==`,
 
                 // "Zoho-enczapikey PHtE6r1eFL/rjzF68UcBsPG/Q8L1No16/b5jKgkU44hBCPMFS00Eo49/xjO/ohkqU6JBRqTJy45v572e4u/TcWflNm1JWGqyqK3sx/VYSPOZsbq6x00etVkdd03eVoLue95s0CDfv9fcNA==",
                 "cache-control": "no-cache",
