@@ -4,7 +4,6 @@ const disbursalSchema = new mongoose.Schema(
     {
         loanNo: {
             type: String,
-            required: true,
             unique: true,
         },
         application: {
@@ -22,6 +21,23 @@ const disbursalSchema = new mongoose.Schema(
         disbursalManagerId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Employee",
+        },
+        payableAccount: {
+            type: String,
+        },
+        paymentMode: {
+            type: String,
+            enum: ["Offline"],
+        },
+        amount: {
+            type: String,
+        },
+        channel: {
+            type: String,
+            enum: ["IMPS", "NEFT"],
+        },
+        remarks: {
+            type: String,
         },
         // onHold:{
         //     type: Boolean,

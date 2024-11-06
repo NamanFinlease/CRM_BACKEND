@@ -31,7 +31,7 @@ export function sanctionLetter(
             loanAmount: `${new Intl.NumberFormat().format(
                 camDetails?.details.loanRecommended
             )}`,
-            roi: `${camDetails?.details.eligibleRoi}`,
+            roi: `${camDetails?.details.roi}`,
             disbursalDate: dateFormatter(camDetails?.details.disbursalDate),
             repaymentAmount: `${new Intl.NumberFormat().format(
                 camDetails?.details.repaymentAmount
@@ -40,7 +40,7 @@ export function sanctionLetter(
             repaymentDate: dateFormatter(camDetails?.details.repaymentDate),
             penalInterest: `${camDetails?.details.penalInterest || "0"}`,
             processingFee: `${new Intl.NumberFormat().format(
-                camDetails?.details.totalAdminFeeAmount
+                camDetails?.details.netAdminFeeAmount
             )}`,
             // repaymentCheques: `${camDetails?.details.repaymentCheques || "-"}`,
             // bankName: `${bankName || "-"}`,

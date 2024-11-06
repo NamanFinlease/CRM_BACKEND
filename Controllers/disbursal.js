@@ -1,6 +1,6 @@
 import asyncHandler from "../middleware/asyncHandler.js";
+import CamDetails from "../models/CAM.js";
 import Disbursal from "../models/Disbursal.js";
-import Employee from "../models/Employees.js";
 import { postLogs } from "./logs.js";
 
 // @desc Get new disbursal
@@ -23,9 +23,11 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate({
                 path: "application",
-                populate: {
-                    path: "lead",
-                },
+                populate: [
+                    { path: "lead" },
+                    { path: "creditManagerId" },
+                    { path: "approvedBy" },
+                ],
             });
 
         const totalDisbursals = await Disbursal.countDocuments(query);
@@ -50,11 +52,14 @@ export const getDisbursal = asyncHandler(async (req, res) => {
             path: "lead",
         },
     });
+    const cam = await CamDetails.findOne({
+        leadId: disbursal.application.lead._id,
+    });
     if (!disbursal) {
         res.status(404);
         throw new Error("Disbursal not found!!!!");
     }
-    return res.json(disbursal);
+    return res.json(disbursal, cam);
 });
 
 // @desc Allocate new disbursal
@@ -270,7 +275,29 @@ export const disbursed = asyncHandler(async (req, res) => {
 export const approveDisbursal = asyncHandler(async (req, res) => {
     if (req.activeRole === "disbursalHead") {
         const { id } = req.params;
+        const {
+            payableAccount,
+            paymentMode,
+            amount,
+            channel,
+            disbursalDate,
+            remarks,
+        } = req.body;
 
-        const disbursal = await Disbursal.findByIdAndUpdate(id);
+        const disbursal = await Disbursal.findByIdAndUpdate(
+            id,
+            {
+                payableAccount,
+                paymentMode,
+                amount,
+                channel,
+                disbursedAt: disbursalDate,
+                remarks,
+                isDisbursed: true,
+                disbursedBy: req.employee._id.toString(),
+            },
+            { new: true }
+        );
+        res.json({ success: true, message: "Disbursed", data: disbursal });
     }
 });

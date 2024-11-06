@@ -7,6 +7,7 @@ import {
     recommendDisbursal,
     disbursalPending,
     disbursed,
+    approveDisbursal,
 } from "../Controllers/disbursal.js";
 // import { onHold, unHold, getHold } from "../Controllers/holdUnhold.js";
 // import { rejected, getRejected } from "../Controllers/rejected.js";
@@ -18,13 +19,13 @@ const router = express.Router();
 
 router.route("/").get(protect, getNewDisbursal);
 router.route("/allocated").get(protect, allocatedDisbursal);
+router.route("/pending").get(protect, disbursalPending);
+router.route("/disbursed").get(protect, disbursed);
 router
     .route("/:id")
     .get(protect, getDisbursal)
     .patch(protect, allocateDisbursal);
-
 router.route("/recommend/:id").patch(protect, recommendDisbursal);
-router.route("/pending").get(protect, disbursalPending);
-router.route("/disbursed").get(protect, disbursed);
+router.route("/approve/:id").patch(protect, approveDisbursal);
 
 export default router;

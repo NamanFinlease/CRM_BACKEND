@@ -1,6 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Lead from "../models/Leads.js";
 import Application from "../models/Applications.js";
+import Disbursal from "../models/Disbursal.js";
 
 // @desc Get total number of lead
 // @route GET /api/leads/totalRecords or /api/applications/totalRecords
@@ -8,7 +9,9 @@ import Application from "../models/Applications.js";
 export const totalRecords = asyncHandler(async (req, res) => {
     const leads = await Lead.find({});
     const applications = await Application.find({}).populate("lead");
+    const disbursals = await Disbursal.find({});
 
+    // Screener
     const totalLeads = leads.length;
     const newLeads = leads.filter(
         (lead) =>
@@ -47,6 +50,7 @@ export const totalRecords = asyncHandler(async (req, res) => {
         );
     }
 
+    // Credit Manager
     const totalApplications = applications.length;
     const newApplications = applications.filter(
         (application) =>
@@ -102,6 +106,7 @@ export const totalRecords = asyncHandler(async (req, res) => {
         );
     }
 
+    // Sanction Head
     let newSanctions;
     let sanctioned;
     if (req.activeRole === "sanctionHead") {
@@ -123,6 +128,28 @@ export const totalRecords = asyncHandler(async (req, res) => {
         ).length;
     }
 
+    // Disbursal Manager
+    const totalDisbursals = disbursals.length;
+    const newDisbursals = disbursals.filter(
+        (disbursalApplication) =>
+            !disbursalApplication.disbursalManagerId &&
+            !disbursalApplication.isRecommended
+    ).length;
+
+    let allocatedDisbursals = disbursals.filter(
+        (disbursalApplication) =>
+            disbursalApplication.disbursalManagerId &&
+            !disbursalApplication.isRecommended &&
+            !disbursalApplication.recommendedBy
+    );
+    if (req.activeRole === "disbursalManager") {
+        allocatedDisbursals = allocatedDisbursals.filter(
+            (disbursalApplication) =>
+                disbursalApplication.disbursalManagerId.toString() ===
+                req.employee._id.toString()
+        );
+    }
+
     res.json({
         leads: {
             totalLeads,
@@ -142,6 +169,11 @@ export const totalRecords = asyncHandler(async (req, res) => {
         sanction: {
             newSanctions,
             sanctioned,
+        },
+        disbursal: {
+            totalDisbursals,
+            newDisbursals,
+            allocatedDisbursals,
         },
     });
 });

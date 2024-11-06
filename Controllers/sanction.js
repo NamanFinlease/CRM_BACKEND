@@ -26,6 +26,7 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
         const applications = await Application.find(query)
             .skip(skip)
             .limit(limit)
+            .sort({ updatedAt: -1 })
             .populate("lead")
             .populate({ path: "recommendedBy", select: "fName mName lName" });
 

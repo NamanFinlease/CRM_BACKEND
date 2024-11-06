@@ -1,5 +1,5 @@
-// controllers/authController.js
 import asyncHandler from "../middleware/asyncHandler.js";
+import Admin from "../models/Admin.js";
 import Employee from "../models/Employees.js";
 import { generateToken } from "../utils/generateToken.js";
 
@@ -123,4 +123,41 @@ export const getAnEmployee = asyncHandler(async (req, res) => {
     }
     res.stauts(400);
     throw new Error("Employee not found!!");
+});
+
+// @desc Add Admin Bank accounts
+// @route POST /api/employees/admin/banks
+// @access Admin
+export const addAdminBanks = asyncHandler(async (req, res) => {
+    if (req.activeRole === "admin") {
+        const { bankName, bankBranch, accountNo, accountHolder, ifscCode } =
+            req.body;
+
+        const newBank = await Admin.create({
+            bank: [
+                {
+                    bankName,
+                    bankBranch,
+                    accountNo,
+                    accountHolder,
+                    ifscCode,
+                },
+            ],
+        });
+
+        if (!newBank) {
+            res.status(400);
+            throw new Error("Could not save the bank");
+        }
+
+        res.json({ success: true, message: "Bank saved." });
+    }
+});
+
+// @desc Get Admin Bank accounts
+// @route GET /api/employees/admin/banks
+// @access Private
+export const adminBanks = asyncHandler(async (req, res) => {
+    const banks = await Admin.find({});
+    return res.json(banks);
 });
