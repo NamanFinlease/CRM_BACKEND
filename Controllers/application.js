@@ -130,8 +130,6 @@ export const allocatedApplications = asyncHandler(async (req, res) => {
         .populate("creditManagerId")
         .sort({ updatedAt: -1 });
 
-    console.log("aapplication", query, applications);
-
     const totalApplications = await Application.countDocuments(query);
 
     return res.json({

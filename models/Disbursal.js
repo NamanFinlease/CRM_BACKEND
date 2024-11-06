@@ -2,8 +2,10 @@ import mongoose from "mongoose";
 
 const disbursalSchema = new mongoose.Schema(
     {
-        _id: {
+        loanNo: {
             type: String,
+            required: true,
+            unique: true,
         },
         application: {
             type: mongoose.Schema.Types.ObjectId,
@@ -60,7 +62,7 @@ const disbursalSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Pre-save hook to generate custom auto-incrementing _id
+// Pre-save hook to generate custom auto-incrementing loanNo
 disbursalSchema.pre("save", async function (next) {
     if (this.isNew) {
         try {
@@ -68,17 +70,17 @@ disbursalSchema.pre("save", async function (next) {
             const lastDisbursal = await mongoose
                 .model("Disbursal")
                 .findOne({})
-                .sort({ _id: -1 })
+                .sort({ loanNo: -1 })
                 .exec();
 
             // Extract the numeric part, increment it, or start from 1 if no previous record exists
             const lastSequence = lastDisbursal
-                ? parseInt(lastDisbursal._id.slice(7))
-                : 1;
+                ? parseInt(lastDisbursal.loanNo.slice(7))
+                : 0;
             const newSequence = lastSequence + 1;
 
-            // Set the new _id with zero-padded sequence to 11 digits
-            this._id = `NMFSPE${String(newSequence).padStart(11, 0)}`;
+            // Set the new loanNo with zero-padded sequence to 11 digits
+            this.loanNo = `NMFSPE${String(newSequence).padStart(11, 0)}`;
         } catch (error) {
             return next(error);
         }

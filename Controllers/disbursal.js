@@ -65,7 +65,7 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
     let disbursalManagerId;
 
     if (req.activeRole === "disbursalManager") {
-        creditManagerId = req.employee._id.toString();
+        disbursalManagerId = req.employee._id.toString();
     }
 
     const disbursal = await Disbursal.findByIdAndUpdate(
@@ -83,7 +83,6 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
         throw new Error("Application not found"); // This error will be caught by the error handler
     }
 
-    const employee = await Employee.findOne({ _id: disbursalManagerId });
     const logs = await postLogs(
         disbursal.application.lead._id,
         "DISBURSAL IN PROCESS",
@@ -265,6 +264,13 @@ export const disbursed = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc
-// @route PATCH /api/disbursals/
+// @desc Adding details after the payment is made
+// @route PATCH /api/disbursals/approve/:id
 // @access Private
+export const approveDisbursal = asyncHandler(async (req, res) => {
+    if (req.activeRole === "disbursalHead") {
+        const { id } = req.params;
+
+        const disbursal = await Disbursal.findByIdAndUpdate(id);
+    }
+});

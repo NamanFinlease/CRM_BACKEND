@@ -37,16 +37,10 @@ export const totalRecords = asyncHandler(async (req, res) => {
 
     if (req.activeRole === "screener") {
         allocatedLeads = allocatedLeads.filter((allocated) => {
-            console.log(
-                "screenerId and employee: ",
-                allocated.screenerId.toString(),
-                req.employee._id.toString()
-            );
             return (
                 allocated.screenerId.toString() === req.employee._id.toString()
             );
         });
-        console.log(allocatedLeads);
 
         heldLeads = heldLeads.filter(
             (held) => held.heldBy.toString() === req.employee._id.toString()
@@ -108,6 +102,25 @@ export const totalRecords = asyncHandler(async (req, res) => {
         );
     }
 
+    if (req.activeRole === "sanctionHead") {
+        const newSanctions = applications.filter(
+            (application) =>
+                application.creditManagerId &&
+                !application.onHold &&
+                !application.isRejected &&
+                application.isRecommended
+        ).length;
+
+        const sanctioned = applications.filter(
+            (application) =>
+                application.creditManagerId &&
+                !application.onHold &&
+                !application.isRejected &&
+                application.isRecommended &&
+                application.isApproved
+        ).length;
+    }
+
     res.json({
         leads: {
             totalLeads,
@@ -123,6 +136,10 @@ export const totalRecords = asyncHandler(async (req, res) => {
             heldApplications: heldApplications.length,
             rejectedApplications: rejectedApplications.length,
             sanctionedApplications: sanctionedApplications.length,
+        },
+        sanction: {
+            newSanctions,
+            sanctioned,
         },
     });
 });
