@@ -102,8 +102,10 @@ export const totalRecords = asyncHandler(async (req, res) => {
         );
     }
 
+    let newSanctions;
+    let sanctioned;
     if (req.activeRole === "sanctionHead") {
-        const newSanctions = applications.filter(
+        newSanctions = applications.filter(
             (application) =>
                 application.creditManagerId &&
                 !application.onHold &&
@@ -111,7 +113,7 @@ export const totalRecords = asyncHandler(async (req, res) => {
                 application.isRecommended
         ).length;
 
-        const sanctioned = applications.filter(
+        sanctioned = applications.filter(
             (application) =>
                 application.creditManagerId &&
                 !application.onHold &&
