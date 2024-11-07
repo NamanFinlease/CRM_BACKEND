@@ -107,26 +107,22 @@ export const totalRecords = asyncHandler(async (req, res) => {
     }
 
     // Sanction Head
-    let newSanctions;
-    let sanctioned;
-    if (req.activeRole === "sanctionHead") {
-        newSanctions = applications.filter(
-            (application) =>
-                application.creditManagerId &&
-                !application.onHold &&
-                !application.isRejected &&
-                application.isRecommended
-        ).length;
+    let newSanctions = applications.filter(
+        (application) =>
+            application.creditManagerId &&
+            !application.onHold &&
+            !application.isRejected &&
+            application.isRecommended
+    ).length;
 
-        sanctioned = applications.filter(
-            (application) =>
-                application.creditManagerId &&
-                !application.onHold &&
-                !application.isRejected &&
-                application.isRecommended &&
-                application.isApproved
-        ).length;
-    }
+    let sanctioned = applications.filter(
+        (application) =>
+            application.creditManagerId &&
+            !application.onHold &&
+            !application.isRejected &&
+            application.isRecommended &&
+            application.isApproved
+    ).length;
 
     // Disbursal Manager
     const totalDisbursals = disbursals.length;
@@ -140,7 +136,7 @@ export const totalRecords = asyncHandler(async (req, res) => {
         (disbursalApplication) =>
             disbursalApplication.disbursalManagerId &&
             !disbursalApplication.isRecommended &&
-            !disbursalApplication.recommendedBy
+            !disbursalApplication.isApproved
     );
     if (req.activeRole === "disbursalManager") {
         allocatedDisbursals = allocatedDisbursals.filter(
@@ -173,7 +169,7 @@ export const totalRecords = asyncHandler(async (req, res) => {
         disbursal: {
             totalDisbursals,
             newDisbursals,
-            allocatedDisbursals,
+            allocatedDisbursals: allocatedDisbursals.length,
         },
     });
 });

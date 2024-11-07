@@ -57,8 +57,8 @@ export const sentBack = asyncHandler(async (req, res) => {
                 throw new Error("Can not delete!!");
             }
 
-            lead.isRecommended = false;
             lead.recommendedBy = null;
+            lead.isRecommended = false;
             await lead.save();
 
             logs = await postLogs(

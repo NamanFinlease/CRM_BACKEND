@@ -159,6 +159,7 @@ export const allocatedLeads = asyncHandler(async (req, res) => {
             onHold: { $ne: true },
             isRejected: { $ne: true },
             isRecommended: { $ne: true },
+            recommendedBy: null,
         };
     } else if (req.activeRole === "screener") {
         query = {

@@ -127,6 +127,7 @@ export const allocatedApplications = asyncHandler(async (req, res) => {
         .skip(skip)
         .limit(limit)
         .populate("lead")
+        .populate("applicant")
         .populate("creditManagerId")
         .sort({ updatedAt: -1 });
 
