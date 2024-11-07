@@ -62,46 +62,9 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 });
 
-// Middleware to check for specific roles
-// const   = (req, res, next) => {
-//     // const requestedRole = req.query?.role;
-//     // const userRole = req.roles.has(role);
-//     // const hasAccess = requiredRoles.some((role) => req.roles.has(role));
-//     // if (!hasAccess) {
-//     //     res.status(403);
-//     //     throw new Error("You do not have the required permissions");
-//     // }
-//     // next();
-
-//     const requestedRole = req.query?.role;
-//     const userRole = req.roles;
-
-//     // Check if req.roles exists, and if not, handle the error
-//     if (!userRole) {
-//         res.status(500);
-//         return next(
-//             new Error(
-//                 "User roles are undefined. Ensure roles are set in the request object."
-//             )
-//         );
-//     }
-
-//     // Check if userRole exists in role hierarchy and if it includes the requestedRole
-//     // const hasAccess = roleHierarchy[userRole]?.has(requestedRole);
-
-//     // if (!hasAccess) {
-//     //     res.status(403);
-//     //     return next(new Error("You do not have the required permissions"));
-//     // }
-
-//     // If access is granted, proceed to the next middleware
-//     next();
-// };
-
 // Admin Route
 const admin = (req, res, next) => {
-    if (req.admin) {
-        next();
+    if (req.activeRole === "admin") {
     } else {
         res.status(401);
         throw new Error("Not Authorized as Admin!!");
@@ -109,26 +72,3 @@ const admin = (req, res, next) => {
 };
 
 export { protect, admin };
-
-// Middleware to verify JWT
-// const authenticateToken = (req, res, next) => {
-//     const token =
-//         req.cookies.authToken ||
-//         req.header("Authorization")?.replace("Bearer ", "");
-
-//     if (!token) {
-//         return res
-//             .status(401)
-//             .json({ message: "Access denied. No token provided." });
-//     }
-
-//     try {
-//         const decoded = jwt.verify(token, JWT_SECRET);
-//         req.user = decoded; // Add user info to request object
-//         next(); // Proceed to the next middleware or route handler
-//     } catch (err) {
-//         return res.status(401).json({ message: "Invalid token." });
-//     }
-// };
-
-// export { admin };

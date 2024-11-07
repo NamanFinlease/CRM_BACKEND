@@ -1,4 +1,5 @@
 import asyncHandler from "../middleware/asyncHandler.js";
+import Admin from "../models/Admin.js";
 import CamDetails from "../models/CAM.js";
 import Disbursal from "../models/Disbursal.js";
 import { postLogs } from "./logs.js";
@@ -52,14 +53,26 @@ export const getDisbursal = asyncHandler(async (req, res) => {
             { path: "approvedBy" },
         ],
     });
-    const cam = await CamDetails.findOne({
-        leadId: disbursal.application.lead._id,
-    });
+
     if (!disbursal) {
         res.status(404);
         throw new Error("Disbursal not found!!!!");
     }
-    return res.json(disbursal, cam);
+
+    // Convert disbursal to a plain object to make it mutable
+    const disbursalObj = disbursal.toObject();
+
+    // Fetch the CAM data and add to disbursalObj
+    const cam = await CamDetails.findOne({
+        leadId: disbursal.application.lead._id,
+    });
+    disbursalObj.application.cam = cam ? { ...cam.toObject() } : null;
+
+    // Fetch banks from Admin model and add to disbursalObj
+    const admin = await Admin.findOne();
+    disbursalObj.disbursalBanks = admin ? admin.bank : [];
+
+    return res.json({ disbursal: disbursalObj });
 });
 
 // @desc Allocate new disbursal
@@ -158,6 +171,7 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
 export const recommendDisbursal = asyncHandler(async (req, res) => {
     if (req.activeRole === "disbursalManager") {
         const { id } = req.params;
+        const { remarks } = req.body;
 
         // Find the application by its ID
         const disbursal = await Disbursal.findById(id)
@@ -176,12 +190,13 @@ export const recommendDisbursal = asyncHandler(async (req, res) => {
 
         const logs = await postLogs(
             disbursal.application.lead._id,
-            "DISBURSAL APPLICATION APPROVED. SENDING TO DISBURSAL HEAD",
+            "DISBURSAL APPLICATION RECOMMENDED. SENDING TO DISBURSAL HEAD",
             `${disbursal.application.lead.fName}${
                 disbursal.application.lead.mName &&
                 ` ${disbursal.application.lead.mName}`
             } ${disbursal.application.lead.lName}`,
-            `Application approved by ${req.employee.fName} ${req.employee.lName}`
+            `Disbursal approved by ${req.employee.fName} ${req.employee.lName}`,
+            `${remarks}`
         );
 
         return res.json({ success: true, logs });
@@ -231,6 +246,57 @@ export const disbursalPending = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc Adding details after the payment is made
+// @route PATCH /api/disbursals/approve/:id
+// @access Private
+export const approveDisbursal = asyncHandler(async (req, res) => {
+    if (req.activeRole === "disbursalHead") {
+        const { id } = req.params;
+        console.log(id);
+
+        const {
+            payableAccount,
+            paymentMode,
+            amount,
+            channel,
+            disbursalDate,
+            remarks,
+        } = req.body;
+
+        const disbursal = await Disbursal.findByIdAndUpdate(
+            id,
+            {
+                payableAccount,
+                paymentMode,
+                amount,
+                channel,
+                disbursedAt: disbursalDate,
+                isDisbursed: true,
+                disbursedBy: req.employee._id.toString(),
+            },
+            { new: true }
+        ).populate({
+            path: "application",
+            populate: {
+                path: "lead",
+            },
+        });
+
+        const logs = await postLogs(
+            disbursal.application.lead._id,
+            "DISBURSAL APPLICATION APPROVED. SENDING TO DISBURSAL HEAD",
+            `${disbursal.application.lead.fName}${
+                disbursal.application.lead.mName &&
+                ` ${disbursal.application.lead.mName}`
+            } ${disbursal.application.lead.lName}`,
+            `Application approved by ${req.employee.fName} ${req.employee.lName}`,
+            `${remarks}`
+        );
+
+        res.json({ success: true, logs });
+    }
+});
+
 // @desc Get all the disbursed applications
 // @route GET /api/disbursals/disbursed
 // @access Private
@@ -266,38 +332,5 @@ export const disbursed = asyncHandler(async (req, res) => {
     } else {
         res.status(401);
         throw new Error("You are not authorized to check this data");
-    }
-});
-
-// @desc Adding details after the payment is made
-// @route PATCH /api/disbursals/approve/:id
-// @access Private
-export const approveDisbursal = asyncHandler(async (req, res) => {
-    if (req.activeRole === "disbursalHead") {
-        const { id } = req.params;
-        const {
-            payableAccount,
-            paymentMode,
-            amount,
-            channel,
-            disbursalDate,
-            remarks,
-        } = req.body;
-
-        const disbursal = await Disbursal.findByIdAndUpdate(
-            id,
-            {
-                payableAccount,
-                paymentMode,
-                amount,
-                channel,
-                disbursedAt: disbursalDate,
-                remarks,
-                isDisbursed: true,
-                disbursedBy: req.employee._id.toString(),
-            },
-            { new: true }
-        );
-        res.json({ success: true, message: "Disbursed", data: disbursal });
     }
 });

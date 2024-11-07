@@ -36,9 +36,6 @@ const disbursalSchema = new mongoose.Schema(
             type: String,
             enum: ["IMPS", "NEFT"],
         },
-        remarks: {
-            type: String,
-        },
         // onHold:{
         //     type: Boolean,
         //     default: false,
