@@ -45,14 +45,16 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
 // @access Private
 export const getDisbursal = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const disbursal = await Disbursal.findOne({ _id: id }).populate({
-        path: "application",
-        populate: [
-            { path: "lead" },
-            { path: "creditManagerId" },
-            { path: "approvedBy" },
-        ],
-    });
+    const disbursal = await Disbursal.findOne({ _id: id })
+        .populate({
+            path: "application",
+            populate: [
+                { path: "lead" },
+                { path: "creditManagerId" },
+                { path: "approvedBy" },
+            ],
+        })
+        .populate("disbursedBy");
 
     if (!disbursal) {
         res.status(404);
@@ -226,12 +228,12 @@ export const disbursalPending = asyncHandler(async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate({
-                path: "disbursalManagerId",
                 path: "application",
                 populate: {
                     path: "lead",
                 },
-            });
+            })
+            .populate("disbursalManagerId");
 
         const totalDisbursals = await Disbursal.countDocuments(query);
 
@@ -316,12 +318,12 @@ export const disbursed = asyncHandler(async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate({
-                path: "disbursedBy",
                 path: "application",
                 populate: {
                     path: "lead",
                 },
-            });
+            })
+            .populate("disbursedBy");
 
         const totalDisbursals = await Disbursal.countDocuments(query);
 
