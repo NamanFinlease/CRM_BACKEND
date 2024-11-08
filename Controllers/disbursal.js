@@ -219,7 +219,7 @@ export const disbursalPending = asyncHandler(async (req, res) => {
         const query = {
             disbursalManagerId: { $ne: null },
             isRecommended: { $eq: true },
-            isApproved: { $ne: true },
+            isDisbursed: { $ne: true },
         };
 
         const disbursals = await Disbursal.find(query)

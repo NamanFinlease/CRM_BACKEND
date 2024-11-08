@@ -46,6 +46,8 @@ export const applicantDetails = async (details = null) => {
             },
         };
 
+        console.log(updateData);
+
         // Find the applicant by criteria and update if found, or create a new one
         const applicant = await Applicant.findOneAndUpdate(filter, updateData, {
             upsert: true,
