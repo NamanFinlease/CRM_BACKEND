@@ -125,7 +125,7 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
             disbursalManagerId: {
                 $ne: null,
             },
-            isRecommended: { $eq: true },
+            isRecommended: { $ne: true },
             isApproved: { $ne: true },
         };
     } else if (req.activeRole === "disbursalManager") {

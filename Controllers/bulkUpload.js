@@ -90,9 +90,10 @@ async function insertBatch(leadsBatch) {
                 lead: newLead._id,
                 logDate: new Date(),
                 status: "NEW LEAD",
-                borrower: `${newLead.fName} ${newLead.mName ?? ""} ${
-                    newLead.lName
-                }`,
+                borrower: `${newLead.fName}${
+                    newLead.mName && ` ${newLead.mName}`
+                }${newLead.lName && ` ${newLead.lName}`}`,
+
                 leadRemark: "New lead created via bulk upload",
             };
 

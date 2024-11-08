@@ -74,7 +74,9 @@ export const addDocs = asyncHandler(async (req, res) => {
     const logs = await postLogs(
         lead._id,
         "ADDED DOCUMENTS",
-        `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
+        `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+            lead.lName && ` ${lead.lName}`
+        }`,
         `Added documents by ${employee.fName} ${employee.lName}`
     );
 

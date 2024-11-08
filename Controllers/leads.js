@@ -37,7 +37,11 @@ export const createLead = asyncHandler(async (req, res) => {
 
     const newLead = await Lead.create({
         fName,
-        mName: mName ?? "",
+        mName: mName
+            ? mName
+            : fName && fName.split(" ").length === 2
+            ? fName.split(" ")[1]
+            : "",
         lName: lName ?? "",
         gender,
         dob: new Date(dob),
@@ -58,7 +62,9 @@ export const createLead = asyncHandler(async (req, res) => {
     const logs = await postLogs(
         newLead._id,
         "NEW LEAD",
-        `${newLead.fName} ${newLead.mName ?? ""} ${newLead.lName}`,
+        `${newLead.fName}${newLead.mName && ` ${newLead.mName}`}${
+            newLead.lName && ` ${newLead.lName}`
+        }`,
         "New lead created"
     );
     return res.json({ newLead, logs });
@@ -116,14 +122,6 @@ export const allocateLead = asyncHandler(async (req, res) => {
     if (req.activeRole === "screener") {
         screenerId = req.employee._id.toString(); // Current user is a screener
     }
-
-    // if (req.roles.has("sanctionHead")) {
-    //     screenerId = req.body.screenerId;
-    // } else if (req.roles.has("screener")) {
-    //     screenerId = req.screener._id.toString();
-    // } else {
-    //     throw new Error("Not authorized to allocate leads");
-    // }
 
     const lead = await Lead.findByIdAndUpdate(
         id,
@@ -232,7 +230,9 @@ export const updateLead = asyncHandler(async (req, res) => {
     const logs = await postLogs(
         lead._id,
         "LEAD UPDATED",
-        `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
+        `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+            lead.lName && ` ${lead.lName}`
+        }`,
         `Lead details updated by ${employee.fName} ${employee.lName}`
     );
 
@@ -322,7 +322,9 @@ export const recommendLead = asyncHandler(async (req, res) => {
         const logs = await postLogs(
             lead._id,
             "LEAD APPROVED. TRANSFERED TO CREDIT MANAGER",
-            `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
+            `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+                lead.lName && ` ${lead.lName}`
+            }`,
             `Lead approved by ${lead.screenerId.fName} ${lead.screenerId.lName}`
         );
 

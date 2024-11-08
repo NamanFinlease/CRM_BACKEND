@@ -85,9 +85,9 @@ export const allocateApplication = asyncHandler(async (req, res) => {
     const logs = await postLogs(
         application.lead._id,
         "APPLICATION IN PROCESS",
-        `${application.lead.fName} ${application.lead.mName ?? ""} ${
-            application.lead.lName
-        }`,
+        `${application.lead.fName}${
+            application.lead.mName && ` ${application.lead.mName}`
+        }${application.lead.lName && ` ${application.lead.lName}`}`,
         `Application allocated to ${employee.fName} ${employee.lName}`
     );
 
@@ -212,9 +212,9 @@ export const updateCamDetails = asyncHandler(async (req, res) => {
         const logs = await postLogs(
             application.lead._id,
             "APPLICATION IN PROCESS",
-            `${application.lead.fName} ${application.lead.mName ?? ""} ${
-                application.lead.lName
-            }`,
+            `${application.lead.fName}${
+                application.lead.mName && ` ${application.lead.mName}`
+            }${application.lead.lName && ` ${application.lead.lName}`}`,
             `CAM details added by ${application.creditManagerId.fName} ${application.creditManagerId.lName}`,
             `${cam.details?.loanAmount} ${cam.details?.loanRecommended} ${cam.details?.netDisbursalAmount} ${cam.details?.disbursalDate} ${cam.details?.repaymentDate} ${cam.details?.eligibleTenure} ${cam.details?.repaymentAmount}`
         );
@@ -265,9 +265,9 @@ export const recommendedApplication = asyncHandler(async (req, res) => {
             const logs = await postLogs(
                 application.lead._id,
                 "APPLICATION FORWARDED. TRANSFERED TO SACNTION HEAD",
-                `${application.lead.fName} ${application.lead.mName ?? ""} ${
-                    application.lead.lName
-                }`,
+                `${application.lead.fName}${
+                    application.lead.mName && ` ${application.lead.mName}`
+                }${application.lead.lName && ` ${application.lead.lName}`}`,
                 `Application forwarded by ${application.creditManagerId.fName} ${application.creditManagerId.lName}`
             );
             return res.json(logs);

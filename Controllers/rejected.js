@@ -48,7 +48,9 @@ export const rejected = asyncHandler(async (req, res) => {
         logs = await postLogs(
             lead._id,
             "LEAD REJECTED",
-            `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
+            `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+                lead.lName && ` ${lead.lName}`
+            }`,
             `Lead rejected by ${lead.screenerId.fName} ${lead.screenerId.lName}`,
             `${reason}`
         );
@@ -74,7 +76,7 @@ export const rejected = asyncHandler(async (req, res) => {
             "APPLICATION REJECTED",
             `${application.lead.fName}${
                 application.lead.mName && ` ${application.lead.mName}`
-            } ${application.lead.lName ?? ""}`,
+            }${application.lead.lName && ` ${application.lead.lName}`}`,
             `APPLICATION rejected by ${employee.fName} ${employee.lName}`,
             `${reason}`
         );

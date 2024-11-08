@@ -108,7 +108,9 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
             "APPLICATION APPROVED. SEND TO DISBURSAL",
             `${application.applicant.fName}${
                 application.applicant.mName && ` ${application.applicant.mName}`
-            } ${application.applicant.lName}`,
+            }${
+                application.applicant.lName && ` ${application.applicant.lName}`
+            }`,
             `Application approved by ${req.employee.fName} ${req.employee.lName}`
         );
 

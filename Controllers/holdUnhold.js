@@ -46,7 +46,9 @@ export const onHold = asyncHandler(async (req, res) => {
         logs = await postLogs(
             lead._id,
             "LEAD ON HOLD",
-            `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
+            `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+                lead.lName && ` ${lead.lName}`
+            }`,
             `Lead on hold by ${lead.screenerId.fName} ${lead.screenerId.lName}`,
             `${reason}`
         );
@@ -70,9 +72,9 @@ export const onHold = asyncHandler(async (req, res) => {
         logs = await postLogs(
             application.lead._id,
             "APPLICATION ON HOLD",
-            `${application.lead.fName} ${application.lead.mName ?? ""} ${
-                application.lead.lName
-            }`,
+            `${application.lead.fName}${
+                application.lead.mName && ` ${application.lead.mName}`
+            }${application.lead.lName && ` ${application.lead.lName}`}`,
             `Application on hold by ${application.creditManagerId.fName} ${application.creditManagerId.lName}`,
             `${reason}`
         );
@@ -124,7 +126,9 @@ export const unHold = asyncHandler(async (req, res) => {
         logs = await postLogs(
             lead._id,
             "LEAD UNHOLD",
-            `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
+            `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+                lead.lName && ` ${lead.lName}`
+            }`,
             `Lead unhold by ${lead.screenerId.fName} ${lead.screenerId.lName}`,
             `${reason}`
         );
@@ -148,9 +152,9 @@ export const unHold = asyncHandler(async (req, res) => {
         logs = await postLogs(
             application.lead._id,
             "APPLICATION UNHOLD",
-            `${application.lead.fName} ${application.lead.mName ?? ""} ${
-                application.lead.lName
-            }`,
+            `${application.lead.fName}${
+                application.lead.mName && ` ${application.lead.mName}`
+            }${application.lead.lName && ` ${application.lead.lName}`}`,
             `Application unhold by ${application.creditManagerId.fName} ${application.creditManagerId.lName}`,
             `${reason}`
         );

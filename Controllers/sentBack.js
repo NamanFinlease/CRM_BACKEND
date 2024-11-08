@@ -26,9 +26,9 @@ export const sentBack = asyncHandler(async (req, res) => {
             logs = await postLogs(
                 lead._id,
                 `SENT BACK TO ${sendTo.toUpperCase()}`,
-                `${application.lead.fName} ${
+                `${application.lead.fName}${
                     application.lead.mName && ` ${application.lead.mName}`
-                }${application.lead.lName ?? ` ${application.lead.lName}`}`,
+                }${application.lead.lName && ` ${application.lead.lName}`}`,
                 `Sent back by ${req.employee.fName} ${req.employee.lName}`,
                 `${reason}`
             );
@@ -64,11 +64,11 @@ export const sentBack = asyncHandler(async (req, res) => {
             logs = await postLogs(
                 lead._id,
                 `SENT BACK TO ${sendTo.toUpperCase()}`,
-                `${deletedApplication.lead.fName} ${
+                `${deletedApplication.lead.fName}${
                     deletedApplication.lead.mName &&
                     ` ${deletedApplication.lead.mName}`
                 }${
-                    deletedApplication.lead.lName ??
+                    deletedApplication.lead.lName &&
                     ` ${deletedApplication.lead.lName}`
                 }`,
                 `Sent back by ${deletedApplication.creditManagerId.fName} ${deletedApplication.creditManagerId.lName}`,
