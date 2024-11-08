@@ -315,6 +315,8 @@ export const disbursed = asyncHandler(async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate({
+                path: "disbursalManagerId",
+                path: "disbursedBy",
                 path: "application",
                 populate: {
                     path: "lead",
