@@ -130,27 +130,37 @@ export const getAnEmployee = asyncHandler(async (req, res) => {
 // @access Admin
 export const addAdminBanks = asyncHandler(async (req, res) => {
     if (req.activeRole === "admin") {
-        const { bankName, bankBranch, accountNo, accountHolder, ifscCode } =
+        // Check if there's an exisiting Admin document
+        let admin = await Admin.findOne();
+
+        const { bankName, branchName, accountNumber, accountHolder, ifsc } =
             req.body;
 
-        const newBank = await Admin.create({
-            bank: [
-                {
-                    bankName,
-                    bankBranch,
-                    accountNo,
-                    accountHolder,
-                    ifscCode,
-                },
-            ],
-        });
+        const newBank = {
+            bankName,
+            bankBranch: branchName,
+            accountNo: accountNumber,
+            accountHolder,
+            ifscCode: ifsc,
+        };
 
-        if (!newBank) {
-            res.status(400);
-            throw new Error("Could not save the bank");
+        if (admin) {
+            // Admin document exists; update the bank array by appending the new bank
+            admin.bank.push(newBank);
+            await admin.save();
+            return res.json({
+                success: true,
+                message: "Bank has been saved!!",
+            });
+        } else {
+            // No Admin document exists; create a new one
+            admin = new Admin({ bank: [newBank] });
+            await admin.save();
+            return res.json({
+                success: true,
+                message: "Bank has been saved!!",
+            });
         }
-
-        res.json({ success: true, message: "Bank saved." });
     }
 });
 

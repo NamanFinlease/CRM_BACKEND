@@ -14,10 +14,17 @@ export const applicantDetails = async (details = null) => {
         // Define the criteria to find an existing applicant
         const filter = {
             $and: [
-                { "personalDetails.personalEmail": details.personalEmail },
-                { "personalDetails.mobile": details.mobile }, // Check if Aadhaar matches
                 { "personalDetails.pan": details.pan }, // Check if PAN matches
                 { "personalDetails.aadhaar": details.aadhaar }, // Check if Aadhaar matches
+                {
+                    $or: [
+                        { "personalDetails.mobile": details.mobile },
+                        {
+                            "personalDetails.personalEmail":
+                                details.personalEmail,
+                        },
+                    ],
+                },
             ],
         };
 

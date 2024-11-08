@@ -12,6 +12,8 @@ const protect = asyncHandler(async (req, res, next) => {
             req.employee = await Employees.findById(decoded.id).select(
                 "-password"
             );
+            console.log(req.employee);
+
             if (!req.employee) {
                 res.status(404);
                 throw new Error("Employee not found");
@@ -64,11 +66,11 @@ const protect = asyncHandler(async (req, res, next) => {
 
 // Admin Route
 const admin = (req, res, next) => {
-    if (req.activeRole === "admin") {
-    } else {
+    if (req.activeRole !== "admin") {
         res.status(401);
         throw new Error("Not Authorized as Admin!!");
     }
+    next();
 };
 
 export { protect, admin };
