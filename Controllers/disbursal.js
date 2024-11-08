@@ -308,7 +308,7 @@ export const disbursed = asyncHandler(async (req, res) => {
 
         const query = {
             disbursalManagerId: { $ne: null },
-            isApproved: { $eq: true },
+            isDisbursed: { $eq: true },
         };
 
         const disbursals = await Disbursal.find(query)
