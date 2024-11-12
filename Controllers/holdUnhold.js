@@ -110,8 +110,7 @@ export const onHold = asyncHandler(async (req, res) => {
         );
 
         return res.json({ sanction, logs });
-    }
-    if (
+    } else if (
         req.activeRole === "disbursalManager" ||
         req.activeRole === "disbursalHead"
     ) {
