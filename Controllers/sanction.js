@@ -92,7 +92,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
 
         const { sanction, camDetails, response } = await getSanctionData(id);
 
-        const lead = await Lead.findById({ _id: application.lead });
+        const lead = await Lead.findById({ _id: sanction.application.lead });
 
         // Call the generateSanctionLetter utility function
         const emailResponse = await generateSanctionLetter(
