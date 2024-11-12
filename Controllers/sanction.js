@@ -53,15 +53,13 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
 // @access Private
 export const getSanction = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const sanction = await Sanction.findOne({ _id: id })
-        .populate({
-            path: "application",
-            populate: [
-                { path: "lead" },
-                { path: "recommendedBy", select: "fName mName lName" },
-            ],
-        })
-        .populate("lead");
+    const sanction = await Sanction.findOne({ _id: id }).populate({
+        path: "application",
+        populate: [
+            { path: "lead" },
+            { path: "recommendedBy", select: "fName mName lName" },
+        ],
+    });
     if (!sanction) {
         res.status(404);
         throw new Error("Application not found!!!!");
