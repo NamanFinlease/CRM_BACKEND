@@ -26,9 +26,12 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate({
-                path: "application",
+                path: "sanction", // Populating the 'sanction' field in Disbursal
                 populate: {
-                    path: "lead",
+                    path: "application", // Inside 'sanction', populate the 'application' field
+                    populate: {
+                        path: "lead", // Inside 'application', populate the 'lead' field
+                    },
                 },
             });
 
@@ -50,12 +53,15 @@ export const getDisbursal = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const disbursal = await Disbursal.findOne({ _id: id })
         .populate({
-            path: "application",
-            populate: [
-                { path: "lead" },
-                { path: "creditManagerId" },
-                { path: "approvedBy" },
-            ],
+            path: "sanction", // Populating the 'sanction' field in Disbursal
+            populate: {
+                path: "application", // Inside 'sanction', populate the 'application' field
+                populate: [
+                    { path: "lead" },
+                    { path: "creditManagerId" },
+                    { path: "recommendBy" },
+                ],
+            },
         })
         .populate("disbursedBy");
 
@@ -96,9 +102,12 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
         { disbursalManagerId },
         { new: true }
     ).populate({
-        path: "application",
+        path: "sanction", // Populating the 'sanction' field in Disbursal
         populate: {
-            path: "lead",
+            path: "application", // Inside 'sanction', populate the 'application' field
+            populate: {
+                path: "lead", // Inside 'application', populate the 'lead' field
+            },
         },
     });
 
@@ -149,9 +158,12 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
         .skip(skip)
         .limit(limit)
         .populate({
-            path: "application",
+            path: "sanction", // Populating the 'sanction' field in Disbursal
             populate: {
-                path: "lead",
+                path: "application", // Inside 'sanction', populate the 'application' field
+                populate: {
+                    path: "lead", // Inside 'application', populate the 'lead' field
+                },
             },
         })
         .populate({
@@ -181,8 +193,13 @@ export const recommendDisbursal = asyncHandler(async (req, res) => {
         // Find the application by its ID
         const disbursal = await Disbursal.findById(id)
             .populate({
-                path: "application",
-                populate: [{ path: "lead" }],
+                path: "sanction", // Populating the 'sanction' field in Disbursal
+                populate: {
+                    path: "application", // Inside 'sanction', populate the 'application' field
+                    populate: {
+                        path: "lead", // Inside 'application', populate the 'lead' field
+                    },
+                },
             })
             .populate({
                 path: "disbursalManagerId",
@@ -231,9 +248,12 @@ export const disbursalPending = asyncHandler(async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate({
-                path: "application",
+                path: "sanction", // Populating the 'sanction' field in Disbursal
                 populate: {
-                    path: "lead",
+                    path: "application", // Inside 'sanction', populate the 'application' field
+                    populate: {
+                        path: "lead", // Inside 'application', populate the 'lead' field
+                    },
                 },
             })
             .populate("disbursalManagerId");
@@ -268,28 +288,42 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
             remarks,
         } = req.body;
 
-        const disbursalData = await Disbursal.findById(id).populate("application","lead")
-        const cam = await CamDetails.findOne({leadId:disbursalData?.application?.lead})
+        const disbursalData = await Disbursal.findById(id).populate(
+            "application",
+            "lead"
+        );
+        const cam = await CamDetails.findOne({
+            leadId: disbursalData?.application?.lead,
+        });
         // if()
-        let currentDisbursalDate = new Date(disbursalDate)
-        let camDisbursalDate = new Date(cam.details.disbursalDate)
-        let camRepaymentDate = new Date(cam.details.repaymentDate)
-        if(camDisbursalDate.toLocaleDateString() !== currentDisbursalDate.toLocaleDateString()){
-
-
-            const tenure = Math.ceil((camRepaymentDate.getTime() - currentDisbursalDate.getTime())/(1000*3600*24))
-            const repaymentAmount = (Number(cam.details.loanRecommended) + Number(cam.details.loanRecommended)*Number(tenure) *Number(cam.details.roi)/100)
-            console.log('cam update',repaymentAmount)
-            const update = await CamDetails.findByIdAndUpdate(cam._id,
+        let currentDisbursalDate = new Date(disbursalDate);
+        let camDisbursalDate = new Date(cam.details.disbursalDate);
+        let camRepaymentDate = new Date(cam.details.repaymentDate);
+        if (
+            camDisbursalDate.toLocaleDateString() !==
+            currentDisbursalDate.toLocaleDateString()
+        ) {
+            const tenure = Math.ceil(
+                (camRepaymentDate.getTime() - currentDisbursalDate.getTime()) /
+                    (1000 * 3600 * 24)
+            );
+            const repaymentAmount =
+                Number(cam.details.loanRecommended) +
+                (Number(cam.details.loanRecommended) *
+                    Number(tenure) *
+                    Number(cam.details.roi)) /
+                    100;
+            console.log("cam update", repaymentAmount);
+            const update = await CamDetails.findByIdAndUpdate(
+                cam._id,
                 {
-                    "details.eligibleTenure":tenure,
-                    "details.disbursalDate":currentDisbursalDate,
-                    "details.repaymentAmount":repaymentAmount
+                    "details.eligibleTenure": tenure,
+                    "details.disbursalDate": currentDisbursalDate,
+                    "details.repaymentAmount": repaymentAmount,
                 },
-                {new:true}
-            )
+                { new: true }
+            );
         }
-        
 
         const disbursal = await Disbursal.findByIdAndUpdate(
             id,

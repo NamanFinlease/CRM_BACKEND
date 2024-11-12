@@ -1,5 +1,6 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Application from "../models/Applications.js";
+import Sanction from "../models/Sanction.js";
 import Disbursal from "../models/Disbursal.js";
 import Employee from "../models/Employees.js";
 import Lead from "../models/Leads.js";
@@ -10,15 +11,23 @@ export const sentBack = asyncHandler(async (req, res) => {
     const { sendTo, reason } = req.body;
 
     const lead = await Lead.findById(id);
+    let application = await Application.findOne({ lead: id }).populate("lead");
 
     let logs;
 
     if (req.activeRole === "sanctionHead") {
         if (sendTo === "creditManager") {
             // If sendTo is Credit Manager this will be used
-            const application = await Application.findOne({
-                lead: id,
-            }).populate("lead");
+            const sanction = await Sanction.findOneAndDelete({
+                application: application._id,
+            }).populate({
+                path: "application",
+                populate: { path: "lead" },
+            });
+            if (!sanction) {
+                res.status(400);
+                throw new Error("Can not delete!!");
+            }
 
             application.isRecommended = false;
             application.recommendedBy = null;
@@ -26,9 +35,13 @@ export const sentBack = asyncHandler(async (req, res) => {
             logs = await postLogs(
                 lead._id,
                 `SENT BACK TO ${sendTo.toUpperCase()}`,
-                `${application.lead.fName}${
-                    application.lead.mName && ` ${application.lead.mName}`
-                }${application.lead.lName && ` ${application.lead.lName}`}`,
+                `${sanction.application.lead.fName}${
+                    sanction.application.lead.mName &&
+                    ` ${sanction.application.lead.mName}`
+                }${
+                    sanction.application.lead.lName &&
+                    ` ${sanction.application.lead.lName}`
+                }`,
                 `Sent back by ${req.employee.fName} ${req.employee.lName}`,
                 `${reason}`
             );

@@ -48,6 +48,27 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc Get sanction
+// @route GET /api/sanctions/:id
+// @access Private
+export const getSanction = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const sanction = await Sanction.findOne({ _id: id })
+        .populate({
+            path: "application",
+            populate: [
+                { path: "lead" },
+                { path: "recommendedBy", select: "fName mName lName" },
+            ],
+        })
+        .populate("lead");
+    if (!sanction) {
+        res.status(404);
+        throw new Error("Application not found!!!!");
+    }
+    return res.json(sanction);
+});
+
 // @desc Preview Sanction letter
 // @route GET /api/sanction/preview/:id
 // @access Private
@@ -71,7 +92,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
     if (req.activeRole === "sanctionHead") {
         const { id } = req.params;
 
-        const { application, camDetails, response } = await getSanctionData(id);
+        const { sanction, camDetails, response } = await getSanctionData(id);
 
         const lead = await Lead.findById({ _id: application.lead });
 
@@ -86,7 +107,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
             response.stateCountry,
             camDetails,
             lead,
-            `${application.applicant.personalDetails.personalEmail}`
+            `${sanction.application.applicant.personalDetails.personalEmail}`
         );
 
         // Return a unsuccessful response
@@ -95,7 +116,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
         }
 
         const newDisbursal = new Disbursal({
-            application: application._id,
+            sanction: sanction._id,
         });
 
         const disbursalRes = await newDisbursal.save();
@@ -105,20 +126,22 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
             throw new Error("Could not approve this application!!");
         }
 
-        application.sanctionDate = response.sanctionDate;
-        application.isApproved = true;
-        application.approvedBy = req.employee._id.toString();
-        await application.save();
+        sanction.sanctionDate = response.sanctionDate;
+        sanction.isApproved = true;
+        sanction.approvedBy = req.employee._id.toString();
+        await sanction.save();
 
         const logs = await postLogs(
-            application.lead,
-            "APPLICATION APPROVED. SEND TO DISBURSAL",
-            `${application.applicant.fName}${
-                application.applicant.mName && ` ${application.applicant.mName}`
+            sanction.application.lead,
+            "SANCTION APPROVED. SEND TO DISBURSAL",
+            `${sanction.application.applicant.personalDetails.fName}${
+                sanction.application.applicant.personalDetails.mName &&
+                ` ${sanction.application.applicant.personalDetails.mName}`
             }${
-                application.applicant.lName && ` ${application.applicant.lName}`
+                sanction.application.applicant.personalDetails.lName &&
+                ` ${sanction.application.applicant.personalDetails.lName}`
             }`,
-            `Application approved by ${req.employee.fName} ${req.employee.lName}`
+            `Sanction approved by ${req.employee.fName} ${req.employee.lName}`
         );
 
         return res.json({ success: true, logs });

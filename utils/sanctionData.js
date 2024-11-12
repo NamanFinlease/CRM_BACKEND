@@ -3,15 +3,15 @@ import CamDetails from "../models/CAM.js";
 import { dateFormatter, dateStripper } from "./dateFormatter.js";
 
 export const getSanctionData = async (id) => {
-    // Fetch application and CAM details
+    // Fetch Sanction and CAM details
     const sanction = await Sanction.findById(id).populate({
         path: "application",
         populate: [{ path: "applicant" }],
     });
     const camDetails = await CamDetails.findOne({ leadId: application.lead });
 
-    if (!application) {
-        throw new Error("Application not found");
+    if (!sanction) {
+        throw new Error("Sanction not found");
     }
 
     // Stripping the time from the date to compare
@@ -20,8 +20,7 @@ export const getSanctionData = async (id) => {
 
     // Date validation
     if (
-        (application.sanctionDate &&
-            application.sanctionDate > disbursalDate) || // Strip time from `sanctionDate`
+        (sanction.sanctionDate && sanction.sanctionDate > disbursalDate) || // Strip time from `sanctionDate`
         sanctionDate > disbursalDate
     ) {
         throw new Error(
@@ -33,10 +32,16 @@ export const getSanctionData = async (id) => {
     const response = {
         sanctionDate: sanctionDate,
         title: "Mr./Ms.",
-        fullname: `${application.applicant.personalDetails.fName} ${application.applicant.personalDetails.mName} ${application.applicant.personalDetails.lName}`,
-        residenceAddress: `${application.applicant.residence.address}, ${application.applicant.residence.city}`,
-        stateCountry: `${application.applicant.residence.state}, India - ${application.applicant.residence.pincode}`,
-        mobile: `${application.applicant.personalDetails.mobile}`,
+        fullname: `${sanction.application.applicant.personalDetails.fName}${
+            sanction.application.applicant.personalDetails.mName &&
+            ` ${sanction.application.applicant.personalDetails.mName}`
+        }${
+            sanction.application.applicant.personalDetails.lName &&
+            ` ${sanction.application.applicant.personalDetails.lName}`
+        }`,
+        residenceAddress: `${sanction.application.applicant.residence.address}, ${sanction.application.applicant.residence.city}`,
+        stateCountry: `${sanction.application.applicant.residence.state}, India - ${sanction.application.applicant.residence.pincode}`,
+        mobile: `${sanction.application.applicant.personalDetails.mobile}`,
         loanAmount: `${new Intl.NumberFormat().format(
             camDetails?.details.loanRecommended
         )}`,
@@ -59,5 +64,5 @@ export const getSanctionData = async (id) => {
         // }`,
     };
 
-    return { application, camDetails, response };
+    return { sanction, camDetails, response };
 };

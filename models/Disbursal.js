@@ -6,9 +6,9 @@ const disbursalSchema = new mongoose.Schema(
             type: String,
             unique: true,
         },
-        application: {
+        sanction: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Application",
+            ref: "Sanction",
             required: true,
             unique: true,
         },
