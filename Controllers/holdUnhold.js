@@ -3,6 +3,7 @@ import Lead from "../models/Leads.js";
 import Application from "../models/Applications.js";
 import Sanction from "../models/Sanction.js";
 import { postLogs } from "./logs.js";
+import Disbursal from "../models/Disbursal.js";
 
 // @desc Putting lead or application on hold
 // @route PATCH /api/leads/hold/:id or /api/applications/hold/:id
@@ -32,6 +33,7 @@ export const onHold = asyncHandler(async (req, res) => {
     let lead;
     let application;
     let sanction;
+    let disbursal
     let logs;
 
     if (req.activeRole === "screener") {
@@ -108,8 +110,36 @@ export const onHold = asyncHandler(async (req, res) => {
         );
 
         return res.json({ sanction, logs });
-    } else if (req.activeRole === "disbursalManager") {
-    } else if (req.activeRole === "disbursalHead") {
+    }  if (
+        req.activeRole === "disbursalManager" ||
+        req.activeRole === "disbursalHead"
+    ) {
+         disbursal = await Disbursal.findByIdAndUpdate(
+            id,
+            { onHold: true, heldBy: req.employee._id },
+            { new: true }
+        ).populate([
+            {
+                path: "application",
+                populate: "lead"
+            },
+            { path: "disbursalManagerId", select: "fName mName lName" }
+        ]);
+
+        if (!disbursal) {
+            throw new Error("Application not found");
+        }
+
+        logs = await postLogs(
+            disbursal.application.lead._id,
+            "DISBURSAL APPLICATION ON HOLD",
+            `${disbursal.application.lead.fName}${disbursal.application.lead.mName && ` ${disbursal.application.lead.mName}`
+            }${disbursal.application.lead.lName && ` ${disbursal.application.lead.lName}`}`,
+            `Disbursal on hold by ${disbursal.application.creditManagerId.fName} ${disbursal.application.creditManagerId.lName}`,
+            `${reason}`
+        );
+
+        return res.json({ disbursal, logs });
     }
 });
 
@@ -233,6 +263,7 @@ export const getHold = asyncHandler(async (req, res) => {
 
     let leads;
     let applications;
+    let disbursals
     let totalRecords;
 
     if (req.activeRole === "screener") {
@@ -265,6 +296,32 @@ export const getHold = asyncHandler(async (req, res) => {
                 totalPages: Math.ceil(totalRecords / limit),
                 currentPage: page,
                 applications,
+            },
+        });
+    } else if (req.activeRole === "disbursalManager") {
+        disbursals = await Disbursal.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate([
+                {
+                    path:"application",
+                    populate:{
+                        path:"lead"
+                    }
+                },
+                {
+                    path:'disbursalManagerId'
+                }
+            ])
+            .sort({ updatedAt: -1 });
+        totalRecords = await Disbursal.countDocuments(query);
+
+        return res.json({
+            heldApplications: {
+                totalRecords,
+                totalPages: Math.ceil(totalRecords / limit),
+                currentPage: page,
+                disbursals,
             },
         });
     } else {

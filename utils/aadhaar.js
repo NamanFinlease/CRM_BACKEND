@@ -2,7 +2,6 @@
 import axios from "axios";
 
 export const generateAadhaarOtp = async (aadhaar) => {
-    console.log(aadhaar);
     const data = { aadhaar_no: aadhaar };
 
     const config = {
