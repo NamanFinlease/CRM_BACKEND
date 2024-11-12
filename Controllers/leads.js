@@ -311,7 +311,7 @@ export const recommendLead = asyncHandler(async (req, res) => {
 
         if (!response) {
             res.status(400);
-            throw new Error("Could not approve this lead!!");
+            throw new Error("Could not recommend this lead!!");
         }
 
         // Approve the lead by updating its status

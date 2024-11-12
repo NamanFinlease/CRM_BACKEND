@@ -1,10 +1,13 @@
-import Application from "../models/Applications.js";
+import Sanction from "../models/Sanction.js";
 import CamDetails from "../models/CAM.js";
 import { dateFormatter, dateStripper } from "./dateFormatter.js";
 
 export const getSanctionData = async (id) => {
     // Fetch application and CAM details
-    const application = await Application.findById(id).populate("applicant");
+    const sanction = await Sanction.findById(id).populate({
+        path: "application",
+        populate: [{ path: "applicant" }],
+    });
     const camDetails = await CamDetails.findOne({ leadId: application.lead });
 
     if (!application) {

@@ -12,7 +12,6 @@ const protect = asyncHandler(async (req, res, next) => {
             req.employee = await Employees.findById(decoded.id).select(
                 "-password"
             );
-            console.log(req.employee);
 
             if (!req.employee) {
                 res.status(404);
@@ -52,7 +51,6 @@ const protect = asyncHandler(async (req, res, next) => {
 
             // Set active role for later use in controllers
             req.activeRole = requestedRole;
-
             next();
         } catch (error) {
             res.status(401);
