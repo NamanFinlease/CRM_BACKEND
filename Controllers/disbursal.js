@@ -1,5 +1,6 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Admin from "../models/Admin.js";
+import Application from "../models/Applications.js";
 import CamDetails from "../models/CAM.js";
 import Disbursal from "../models/Disbursal.js";
 import { postLogs } from "./logs.js";
@@ -34,6 +35,19 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
                     },
                 },
             });
+
+        disbursals.map(async (disburse) => {
+            // Convert disbursal to a plain object to make it mutable
+            const disbursalObj = disburse.toObject();
+            if (disburse.application) {
+                const application = await Application.findById(
+                    disburse.application.toString()
+                );
+                disbursalObj.application = application
+                    ? { ...application.toObject() }
+                    : null;
+            }
+        });
 
         const totalDisbursals = await Disbursal.countDocuments(query);
 

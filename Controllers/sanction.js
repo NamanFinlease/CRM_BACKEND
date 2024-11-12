@@ -1,5 +1,5 @@
 import asyncHandler from "../middleware/asyncHandler.js";
-// import Application from "../models/Applications.js";
+import Application from "../models/Applications.js";
 import { dateFormatter } from "../utils/dateFormatter.js";
 import Disbursal from "../models/Disbursal.js";
 import { generateSanctionLetter } from "../utils/sendsanction.js";
@@ -35,7 +35,7 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
                 ],
             });
 
-        console.log(sanctions);
+        const applications = await Application;
 
         const totalSanctions = await Sanction.countDocuments(query);
 
@@ -159,13 +159,13 @@ export const sanctioned = asyncHandler(async (req, res) => {
     let query;
     if (req.activeRole === "creditManager") {
         query = {
-            isApproved: true,
-            eSigned: false,
+            isApproved: { $eq: true },
+            eSigned: { $ne: true },
         };
     } else if (req.activeRole === "sanctionHead") {
         query = {
-            isApproved: true,
-            isDisbursed: false,
+            isApproved: { $eq: true },
+            isDisbursed: { $ne: true },
         };
     }
     const sanction = await Sanction.find(query)
@@ -180,6 +180,8 @@ export const sanctioned = asyncHandler(async (req, res) => {
             ],
         })
         .populate({ path: "approvedBy", select: "fName mName lName" });
+
+    console.log(sanction);
 
     const totalSanctions = await Sanction.countDocuments(query);
 

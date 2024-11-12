@@ -37,6 +37,17 @@ const applicationSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Employee",
         },
+        // isApproved: {
+        //     type: Boolean,
+        //     default: false,
+        // },
+        // approvedBy: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: "Employee",
+        // },
+        // sanctionDate: {
+        //     type: Date,
+        // },
     },
     { timestamps: true }
 );

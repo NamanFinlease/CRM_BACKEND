@@ -43,6 +43,10 @@ const sanctionSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Employee",
         },
+        isChanged: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );
