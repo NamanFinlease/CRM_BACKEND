@@ -255,7 +255,6 @@ export const disbursalPending = asyncHandler(async (req, res) => {
 export const approveDisbursal = asyncHandler(async (req, res) => {
     if (req.activeRole === "disbursalHead") {
         const { id } = req.params;
-        console.log(id);
 
         const {
             payableAccount,
@@ -265,6 +264,29 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
             disbursalDate,
             remarks,
         } = req.body;
+
+        const disbursalData = await Disbursal.findById(id).populate("application","lead")
+        const cam = await CamDetails.findOne({leadId:disbursalData?.application?.lead})
+        // if()
+        let currentDisbursalDate = new Date(disbursalDate)
+        let camDisbursalDate = new Date(cam.details.disbursalDate)
+        let camRepaymentDate = new Date(cam.details.repaymentDate)
+        if(camDisbursalDate.toLocaleDateString() !== currentDisbursalDate.toLocaleDateString()){
+
+
+            const tenure = Math.ceil((camRepaymentDate.getTime() - currentDisbursalDate.getTime())/(1000*3600*24))
+            const repaymentAmount = (Number(cam.details.loanRecommended) + Number(cam.details.loanRecommended)*Number(tenure) *Number(cam.details.roi)/100)
+            console.log('cam update',repaymentAmount)
+            const update = await CamDetails.findByIdAndUpdate(cam._id,
+                {
+                    "details.eligibleTenure":tenure,
+                    "details.disbursalDate":currentDisbursalDate,
+                    "details.repaymentAmount":repaymentAmount
+                },
+                {new:true}
+            )
+        }
+        
 
         const disbursal = await Disbursal.findByIdAndUpdate(
             id,

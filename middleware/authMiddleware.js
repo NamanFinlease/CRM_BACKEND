@@ -12,7 +12,6 @@ const protect = asyncHandler(async (req, res, next) => {
             req.employee = await Employees.findById(decoded.id).select(
                 "-password"
             );
-            console.log(req.employee);
 
             if (!req.employee) {
                 res.status(404);

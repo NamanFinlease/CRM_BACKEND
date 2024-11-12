@@ -64,6 +64,22 @@ const disbursalSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        onHold: {
+            type: Boolean,
+            default: false,
+        },
+        heldBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Employee",
+        },
+        isRejected: {
+            type: Boolean,
+            default: false,
+        },
+        rejectedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Employee",
+        },
         disbursedBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Employee",

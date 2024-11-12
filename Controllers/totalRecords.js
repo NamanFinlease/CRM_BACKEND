@@ -216,12 +216,9 @@ const inProcessTodayCount = await Application.countDocuments({
     status: 'in process'
 });
 
-console.log(`Sanctioned Today: ${sanctionedTodayCount}`);
-console.log(`In Process Today: ${inProcessTodayCount}`);
 
 
 // Now to find todays total lead in process 
-console.log(leadsGeneratedToday)
         return res.status(200).json({
             success : true,
             message : `Lead ARE ${leadsGeneratedToday}  ${inProcessTodayCount} ${sanctionedTodayCount}` ,
