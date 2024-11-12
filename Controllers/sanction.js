@@ -181,8 +181,6 @@ export const sanctioned = asyncHandler(async (req, res) => {
         })
         .populate({ path: "approvedBy", select: "fName mName lName" });
 
-    console.log(sanction);
-
     const totalSanctions = await Sanction.countDocuments(query);
 
     return res.json({
