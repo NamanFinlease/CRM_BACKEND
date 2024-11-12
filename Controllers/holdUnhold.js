@@ -33,7 +33,7 @@ export const onHold = asyncHandler(async (req, res) => {
     let lead;
     let application;
     let sanction;
-    let disbursal
+    let disbursal;
     let logs;
 
     if (req.activeRole === "screener") {
@@ -110,20 +110,21 @@ export const onHold = asyncHandler(async (req, res) => {
         );
 
         return res.json({ sanction, logs });
-    }  if (
+    }
+    if (
         req.activeRole === "disbursalManager" ||
         req.activeRole === "disbursalHead"
     ) {
-         disbursal = await Disbursal.findByIdAndUpdate(
+        disbursal = await Disbursal.findByIdAndUpdate(
             id,
             { onHold: true, heldBy: req.employee._id },
             { new: true }
         ).populate([
             {
                 path: "application",
-                populate: "lead"
+                populate: "lead",
             },
-            { path: "disbursalManagerId", select: "fName mName lName" }
+            { path: "disbursalManagerId", select: "fName mName lName" },
         ]);
 
         if (!disbursal) {
@@ -133,8 +134,13 @@ export const onHold = asyncHandler(async (req, res) => {
         logs = await postLogs(
             disbursal.application.lead._id,
             "DISBURSAL APPLICATION ON HOLD",
-            `${disbursal.application.lead.fName}${disbursal.application.lead.mName && ` ${disbursal.application.lead.mName}`
-            }${disbursal.application.lead.lName && ` ${disbursal.application.lead.lName}`}`,
+            `${disbursal.application.lead.fName}${
+                disbursal.application.lead.mName &&
+                ` ${disbursal.application.lead.mName}`
+            }${
+                disbursal.application.lead.lName &&
+                ` ${disbursal.application.lead.lName}`
+            }`,
             `Disbursal on hold by ${disbursal.application.creditManagerId.fName} ${disbursal.application.creditManagerId.lName}`,
             `${reason}`
         );
@@ -263,7 +269,7 @@ export const getHold = asyncHandler(async (req, res) => {
 
     let leads;
     let applications;
-    let disbursals
+    let disbursals;
     let totalRecords;
 
     if (req.activeRole === "screener") {
@@ -304,14 +310,14 @@ export const getHold = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate([
                 {
-                    path:"application",
-                    populate:{
-                        path:"lead"
-                    }
+                    path: "application",
+                    populate: {
+                        path: "lead",
+                    },
                 },
                 {
-                    path:'disbursalManagerId'
-                }
+                    path: "disbursalManagerId",
+                },
             ])
             .sort({ updatedAt: -1 });
         totalRecords = await Disbursal.countDocuments(query);
