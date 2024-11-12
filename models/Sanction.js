@@ -15,7 +15,7 @@ const sanctionSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        isdibursed: {
+        isDibursed: {
             type: Boolean,
             default: false,
         },

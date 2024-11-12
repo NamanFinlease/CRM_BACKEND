@@ -141,8 +141,7 @@ export const sanctioned = asyncHandler(async (req, res) => {
             isApproved: true,
             eSigned: false,
         };
-    }
-    if (req.activeRole === "sanctionHead") {
+    } else if (req.activeRole === "sanctionHead") {
         query = {
             isApproved: true,
             isDisbursed: false,
@@ -154,7 +153,10 @@ export const sanctioned = asyncHandler(async (req, res) => {
         .sort({ updatedAt: -1 })
         .populate({
             path: "application",
-            populate: { path: "lead" },
+            populate: [
+                { path: "lead" },
+                { path: "recommendedBy", select: "fName mName lName" },
+            ],
         })
         .populate({ path: "approvedBy", select: "fName mName lName" });
 

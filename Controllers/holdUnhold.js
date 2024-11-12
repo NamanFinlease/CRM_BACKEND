@@ -1,6 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Lead from "../models/Leads.js";
 import Application from "../models/Applications.js";
+import Sanction from "../models/Sanction.js";
 import { postLogs } from "./logs.js";
 
 // @desc Putting lead or application on hold
@@ -30,6 +31,7 @@ export const onHold = asyncHandler(async (req, res) => {
 
     let lead;
     let application;
+    let sanction;
     let logs;
 
     if (req.activeRole === "screener") {
@@ -53,12 +55,7 @@ export const onHold = asyncHandler(async (req, res) => {
             `${reason}`
         );
         return res.json({ lead, logs });
-    }
-
-    if (
-        req.activeRole === "creditManager" ||
-        req.activeRole === "sanctionHead"
-    ) {
+    } else if (req.activeRole === "creditManager") {
         application = await Application.findByIdAndUpdate(
             id,
             { onHold: true, heldBy: req.employee._id },
@@ -80,6 +77,39 @@ export const onHold = asyncHandler(async (req, res) => {
         );
 
         return res.json({ application, logs });
+    } else if (req.activeRole === "sanctionHead") {
+        sanction = await Sanction.findByIdAndUpdate(
+            id,
+            { onHold: true, heldBy: req.employee._id },
+            { new: true }
+        )
+            .populate({
+                path: "application",
+                populate: { path: "lead" },
+            })
+            .populate({ path: "heldBy", select: "fName mName lName" });
+
+        if (!sanction) {
+            throw new Error("Sanction not found");
+        }
+
+        logs = await postLogs(
+            sanction.application.lead._id,
+            "SANCTION ON HOLD",
+            `${sanction.application.lead.fName}${
+                sanction.application.lead.mName &&
+                ` ${sanction.application.lead.mName}`
+            }${
+                sanction.application.lead.lName &&
+                ` ${sanction.application.lead.lName}`
+            }`,
+            `SANCTION held by ${sanction.application.heldBy.fName} ${sanction.application.heldBy.lName}`,
+            `${reason}`
+        );
+
+        return res.json({ sanction, logs });
+    } else if (req.activeRole === "disbursalManager") {
+    } else if (req.activeRole === "disbursalHead") {
     }
 });
 
