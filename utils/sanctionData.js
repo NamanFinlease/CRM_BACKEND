@@ -71,7 +71,9 @@ export const getSanctionData = async (id) => {
         return { application, camDetails, response };
     }
 
-    const camDetails = await CamDetails.findOne({ leadId: application.lead });
+    const camDetails = await CamDetails.findOne({
+        leadId: sanction.application.lead,
+    });
     // if (!sanction) {
     //     throw new Error("Sanction not found");
     // }
