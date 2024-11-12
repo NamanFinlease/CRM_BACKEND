@@ -1,5 +1,5 @@
 import asyncHandler from "../middleware/asyncHandler.js";
-import Application from "../models/Applications.js";
+// import Application from "../models/Applications.js";
 import { dateFormatter } from "../utils/dateFormatter.js";
 import Disbursal from "../models/Disbursal.js";
 import { generateSanctionLetter } from "../utils/sendsanction.js";
@@ -7,6 +7,7 @@ import { getSanctionData } from "../utils/sanctionData.js";
 import { postLogs } from "./logs.js";
 
 import Lead from "../models/Leads.js";
+import Sanction from "../models/Sanction.js";
 
 // @desc Get the forwarded applications
 // @route GET /api/sanction/recommended
@@ -18,25 +19,31 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
         const skip = (page - 1) * limit;
 
         const query = {
-            isRecommended: true,
             isRejected: { $ne: true },
             isApproved: { $ne: true },
         };
 
-        const applications = await Application.find(query)
+        const sanctions = await Sanction.find(query)
             .skip(skip)
             .limit(limit)
             .sort({ updatedAt: -1 })
-            .populate("lead")
-            .populate({ path: "recommendedBy", select: "fName mName lName" });
+            .populate({
+                path: "application",
+                populate: [
+                    { path: "lead" },
+                    { path: "recommendedBy", select: "fName mName lName" },
+                ],
+            });
 
-        const totalApplications = await Application.countDocuments(query);
+        console.log(sanctions);
+
+        const totalSanctions = await Sanction.countDocuments(query);
 
         return res.json({
-            totalApplications,
-            totalPages: Math.ceil(totalApplications / limit),
+            totalSanctions,
+            totalPages: Math.ceil(totalSanctions / limit),
             currentPage: page,
-            applications,
+            sanctions,
         });
     }
 });
@@ -125,28 +132,38 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
 // @route GET /api/sanction/approved
 // @access Private
 export const sanctioned = asyncHandler(async (req, res) => {
-    if (req.activeRole === "sanctionHead") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
-        const skip = (page - 1) * limit;
-
-        const query = {
+    const page = parseInt(req.query.page) || 1; // current page
+    const limit = parseInt(req.query.limit) || 10; // items per page
+    const skip = (page - 1) * limit;
+    let query;
+    if (req.activeRole === "creditManager") {
+        query = {
             isApproved: true,
+            eSigned: false,
         };
-
-        const applications = await Application.find(query)
-            .skip(skip)
-            .limit(limit)
-            .populate("lead")
-            .populate({ path: "approvedBy", select: "fName mName lName" });
-
-        const totalApplications = await Application.countDocuments(query);
-
-        return res.json({
-            totalApplications,
-            totalPages: Math.ceil(totalApplications / limit),
-            currentPage: page,
-            applications,
-        });
     }
+    if (req.activeRole === "sanctionHead") {
+        query = {
+            isApproved: true,
+            isDisbursed: false,
+        };
+    }
+    const sanction = await Sanction.find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ updatedAt: -1 })
+        .populate({
+            path: "application",
+            populate: { path: "lead" },
+        })
+        .populate({ path: "approvedBy", select: "fName mName lName" });
+
+    const totalSanctions = await Sanction.countDocuments(query);
+
+    return res.json({
+        totalSanctions,
+        totalPages: Math.ceil(totalSanctions / limit),
+        currentPage: page,
+        sanction,
+    });
 });

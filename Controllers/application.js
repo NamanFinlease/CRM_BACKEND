@@ -4,6 +4,7 @@ import Employee from "../models/Employees.js";
 import { postLogs } from "./logs.js";
 import { checkApproval } from "../utils/checkApproval.js";
 import CamDetails from "../models/CAM.js";
+import Sanction from "../models/Sanction.js";
 
 // @desc Get all applications
 // @route GET /api/applications
@@ -257,6 +258,20 @@ export const recommendedApplication = asyncHandler(async (req, res) => {
                     .status(400)
                     .json({ success: false, message: result.message });
             }
+
+            // Sending the application to sanction
+            const newSanction = new Sanction({
+                application: application._id,
+            });
+
+            const response = await newSanction.save();
+            console.log(response);
+
+            if (!response) {
+                res.status(400);
+                throw new Error("Could not recommend this application!!");
+            }
+
             // Approve the lead by updating its status
             application.isRecommended = true;
             application.recommendedBy = req.employee._id;
