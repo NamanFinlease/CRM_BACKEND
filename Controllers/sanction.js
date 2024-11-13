@@ -159,6 +159,7 @@ export const sanctioned = asyncHandler(async (req, res) => {
     let query;
     if (req.activeRole === "creditManager") {
         query = {
+            creditManagerId:req.employee._id.toString(),
             isApproved: { $eq: true },
             eSigned: { $ne: true },
         };
