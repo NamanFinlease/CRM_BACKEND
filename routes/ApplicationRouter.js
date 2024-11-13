@@ -39,10 +39,10 @@ router
     .route("/:id")
     .get(protect, getApplication)
     .patch(protect, allocateApplication);
+router.route("/hold/:id").patch(protect, onHold);
 router.patch("/unhold/:id", protect, unHold);
 router.patch("/sent-back/:id", protect, sentBack);
 router.patch("/recommend/:id", protect, recommendedApplication);
-router.route("/hold/:id").patch(protect, onHold);
 router.route("/reject/:id").patch(protect, rejected);
 router
     .route("/cam/:id")

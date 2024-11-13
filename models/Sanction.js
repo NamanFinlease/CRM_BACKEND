@@ -8,6 +8,10 @@ const sanctionSchema = new mongoose.Schema(
             required: true,
             unique: true,
         },
+        recommendedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Employee",
+        },
         sanctionDate: {
             type: String,
         },

@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
-import { rejected } from "../Controllers/rejected.js";
+import { onHold, unHold, getHold } from "../Controllers/holdUnhold.js";
+import { rejected, getRejected } from "../Controllers/rejected.js";
 import {
     getRecommendedApplications,
     getSanction,
@@ -13,7 +14,11 @@ import { protect } from "../middleware/authMiddleware.js";
 
 router.route("/approved").get(protect, sanctioned);
 router.get("/recommended", protect, getRecommendedApplications);
+router.get("/hold", protect, getHold);
+router.get("/rejected", protect, getRejected);
 router.get("/:id", protect, getSanction);
+router.route("/hold/:id").patch(protect, onHold);
+router.patch("/unhold/:id", protect, unHold);
 router.get("/preview/:id", protect, sanctionPreview);
 router.patch("/approve/:id", protect, sanctionApprove);
 router.patch("/sent-back/:id", protect, sentBack);

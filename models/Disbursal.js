@@ -6,6 +6,10 @@ const disbursalSchema = new mongoose.Schema(
             type: String,
             unique: true,
         },
+        // application: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: "Application",
+        // },
         sanction: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Sanction",
@@ -27,14 +31,14 @@ const disbursalSchema = new mongoose.Schema(
         },
         paymentMode: {
             type: String,
-            enum: ["Offline"],
+            enum: ["offline", "online", "Offline", "Online"],
         },
         amount: {
             type: String,
         },
         channel: {
             type: String,
-            enum: ["IMPS", "NEFT"],
+            enum: ["imps", "neft", "IMPS", "NEFT"],
         },
         // onHold:{
         //     type: Boolean,

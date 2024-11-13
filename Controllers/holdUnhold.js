@@ -1,9 +1,9 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Lead from "../models/Leads.js";
 import Application from "../models/Applications.js";
+import Disbursal from "../models/Disbursal.js";
 import Sanction from "../models/Sanction.js";
 import { postLogs } from "./logs.js";
-import Disbursal from "../models/Disbursal.js";
 
 // @desc Putting lead or application on hold
 // @route PATCH /api/leads/hold/:id or /api/applications/hold/:id
@@ -120,8 +120,11 @@ export const onHold = asyncHandler(async (req, res) => {
             { new: true }
         ).populate([
             {
-                path: "application",
-                populate: "lead",
+                path: "sanction",
+                populate: {
+                    path: "application",
+                    populate: "lead",
+                },
             },
             { path: "disbursalManagerId", select: "fName mName lName" },
         ]);
@@ -132,7 +135,7 @@ export const onHold = asyncHandler(async (req, res) => {
 
         logs = await postLogs(
             disbursal.application.lead._id,
-            "DISBURSAL APPLICATION ON HOLD",
+            "DISBURSAL ON HOLD",
             `${disbursal.application.lead.fName}${
                 disbursal.application.lead.mName &&
                 ` ${disbursal.application.lead.mName}`
@@ -140,7 +143,7 @@ export const onHold = asyncHandler(async (req, res) => {
                 disbursal.application.lead.lName &&
                 ` ${disbursal.application.lead.lName}`
             }`,
-            `Disbursal on hold by ${disbursal.application.creditManagerId.fName} ${disbursal.application.creditManagerId.lName}`,
+            `Disbursal on hold by ${disbursal.disbursalManagerId.fName} ${disbursal.disbursalManagerId.lName}`,
             `${reason}`
         );
 
@@ -175,6 +178,8 @@ export const unHold = asyncHandler(async (req, res) => {
 
     let lead;
     let application;
+    let sanction;
+    let disbursal;
     let logs;
 
     if (req.activeRole === "screener") {
@@ -198,12 +203,7 @@ export const unHold = asyncHandler(async (req, res) => {
             `${reason}`
         );
         return res.json({ lead, logs });
-    }
-
-    if (
-        req.activeRole === "creditManager" ||
-        req.activeRole === "sanctionHead"
-    ) {
+    } else if (req.activeRole === "creditManager") {
         application = await Application.findByIdAndUpdate(
             id,
             { onHold: false },
@@ -224,6 +224,68 @@ export const unHold = asyncHandler(async (req, res) => {
             `${reason}`
         );
         return res.json({ application, logs });
+    } else if (req.activeRole === "sanctionHead") {
+        sanction = await Sanction.findByIdAndUpdate(
+            id,
+            { onHold: false },
+            { new: true }
+        )
+            .populate({
+                path: "application",
+                populate: { path: "lead" },
+            })
+            .populate({ path: "heldBy", select: "fName mName lName" });
+
+        if (!sanction) {
+            throw new Error("Sanction not found!!");
+        }
+        logs = await postLogs(
+            sanction.application.lead._id,
+            "SANCTION UNHOLD",
+            `${sanction.application.lead.fName}${
+                sanction.application.lead.mName &&
+                ` ${sanction.application.lead.mName}`
+            }${
+                sanction.application.lead.lName &&
+                ` ${sanction.application.lead.lName}`
+            }`,
+            `Sanction unhold by ${sanction.heldBy.fName} ${sanction.heldBy.lName}`,
+            `${reason}`
+        );
+        return res.json({ sanction, logs });
+    } else if (
+        req.activeRole === "disbursalManager" ||
+        req.activeRole === "disbursalHead"
+    ) {
+        disbursal = await Disbursal.findByIdAndUpdate(
+            id,
+            { onHold: false },
+            { new: true }
+        ).populate([
+            {
+                path: "sanction",
+                populate: { path: "application", populate: { path: "lead" } },
+            },
+            { path: "heldBy", select: "fName mName lName" },
+        ]);
+
+        if (!disbursal) {
+            throw new Error("Sanction not found!!");
+        }
+        logs = await postLogs(
+            disbursal.sanction.application.lead._id,
+            "DISBURSAL UNHOLD",
+            `${disbursal.sanction.application.lead.fName}${
+                disbursal.sanction.application.lead.mName &&
+                ` ${disbursal.sanction.application.lead.mName}`
+            }${
+                disbursal.sanction.application.lead.lName &&
+                ` ${disbursal.sanction.application.lead.lName}`
+            }`,
+            `Sanction unhold by ${disbursal.heldBy.fName} ${disbursal.heldBy.lName}`,
+            `${reason}`
+        );
+        return res.json({ disbursal, logs });
     }
 });
 
@@ -257,9 +319,13 @@ export const getHold = asyncHandler(async (req, res) => {
     //     throw new Error("Not Authorized!!");
     // }
 
-    // If the employee is not admint, they only see the leads they rejected
+    // If the employee is not admin, they only see the leads they held
 
-    if (req.activeRole === "screener" || req.activeRole === "creditManager") {
+    if (
+        req.activeRole !== "admin" ||
+        req.activeRole !== "sanctionHead" ||
+        req.activeRole !== "disbursalHead"
+    ) {
         query = {
             ...query,
             heldBy: employeeId,
@@ -268,6 +334,7 @@ export const getHold = asyncHandler(async (req, res) => {
 
     let leads;
     let applications;
+    let sanctions;
     let disbursals;
     let totalRecords;
 
@@ -309,13 +376,13 @@ export const getHold = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate([
                 {
-                    path: "application",
+                    path: "sanction",
                     populate: {
-                        path: "lead",
+                        path: "application",
+                        populate: {
+                            path: "lead",
+                        },
                     },
-                },
-                {
-                    path: "disbursalManagerId",
                 },
             ])
             .sort({ updatedAt: -1 });
@@ -335,7 +402,7 @@ export const getHold = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate({ path: "heldBy", select: "fName mName lName" })
             .sort({ updatedAt: -1 });
-        const totalLeads = await Lead.countDocuments(query);
+        const totalLeads = leads.length;
 
         applications = await Application.find(query)
             .skip(skip)
@@ -343,7 +410,21 @@ export const getHold = asyncHandler(async (req, res) => {
             .populate("lead")
             .populate({ path: "heldBy", select: "fName mName lName" })
             .sort({ updatedAt: -1 });
-        const totalRecords = await Application.countDocuments(query);
+        const totalApplications = applications.length;
+
+        sanctions = await Sanction.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate({ path: "heldBy", select: "fName mName lName" })
+            .sort({ updatedAt: -1 });
+        const totalSanctions = sanctions.length;
+
+        disbursals = await Disbursal.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate({ path: "heldBy", select: "fName mName lName" })
+            .sort({ updatedAt: -1 });
+        const totalDisbursals = disbursals.length;
 
         return res.json({
             heldLeads: {
@@ -353,10 +434,22 @@ export const getHold = asyncHandler(async (req, res) => {
                 leads,
             },
             heldApplications: {
-                totalRecords,
-                totalPages: Math.ceil(totalRecords / limit),
+                totalApplications,
+                totalPages: Math.ceil(totalApplications / limit),
                 currentPage: page,
                 applications,
+            },
+            heldSanctions: {
+                totalSanctions,
+                totalPages: Math.ceil(totalSanctions / limit),
+                currentPage: page,
+                sanctions,
+            },
+            heldDisbursals: {
+                totalDisbursals,
+                totalPages: Math.ceil(totalDisbursals / limit),
+                currentPage: page,
+                disbursals,
             },
         });
     }

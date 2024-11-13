@@ -9,9 +9,9 @@ import {
     disbursed,
     approveDisbursal,
 } from "../Controllers/disbursal.js";
-// import { onHold, unHold, getHold } from "../Controllers/holdUnhold.js";
-// import { rejected, getRejected } from "../Controllers/rejected.js";
-// import { sentBack } from "../Controllers/sentBack.js";
+import { onHold, unHold, getHold } from "../Controllers/holdUnhold.js";
+import { rejected, getRejected } from "../Controllers/rejected.js";
+import { sentBack } from "../Controllers/sentBack.js";
 import { totalRecords } from "../Controllers/totalRecords.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { getHold, onHold } from "../Controllers/holdUnhold.js";
@@ -22,11 +22,12 @@ router.route("/").get(protect, getNewDisbursal);
 router.route("/allocated").get(protect, allocatedDisbursal);
 router.route("/pending").get(protect, disbursalPending);
 router.route("/disbursed").get(protect, disbursed);
+router.route("/rejected").get(protect, getRejected);
 router.route("/hold").get(protect, getHold);
 router.route("/hold/:id").patch(protect, onHold);
-router.route("/reject/:id").get(protect, disbursed);
-router.route("/rejected").get(protect, disbursed);
-router.route("/send-back/:id").patch(protect, disbursed);
+router.patch("/unhold/:id", protect, unHold);
+router.route("/reject/:id").get(protect, rejected);
+router.route("/send-back/:id").patch(protect, sentBack);
 // router.route("/rejected").get(protect, disbursed);
 router
     .route("/:id")
