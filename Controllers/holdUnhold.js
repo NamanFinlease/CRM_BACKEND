@@ -84,12 +84,13 @@ export const onHold = asyncHandler(async (req, res) => {
             id,
             { onHold: true, heldBy: req.employee._id },
             { new: true }
-        )
-            .populate({
+        ).populate([
+            { path: "heldBy", select: "fName mName lName" },
+            {
                 path: "application",
                 populate: { path: "lead" },
-            })
-            .populate({ path: "heldBy", select: "fName mName lName" });
+            },
+        ]);
 
         if (!sanction) {
             throw new Error("Sanction not found");
@@ -229,12 +230,13 @@ export const unHold = asyncHandler(async (req, res) => {
             id,
             { onHold: false },
             { new: true }
-        )
-            .populate({
+        ).populate([
+            { path: "heldBy", select: "fName mName lName" },
+            {
                 path: "application",
                 populate: { path: "lead" },
-            })
-            .populate({ path: "heldBy", select: "fName mName lName" });
+            },
+        ]);
 
         if (!sanction) {
             throw new Error("Sanction not found!!");

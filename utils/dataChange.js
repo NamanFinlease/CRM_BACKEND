@@ -1,13 +1,18 @@
 import mongoose from "mongoose";
-import Disbursal from "../models/Disbursal.js";
 import Application from "../models/Applications.js";
+import Disbursal from "../models/Disbursal.js";
+import Lead from "../models/Leads.js";
 import Sanction from "../models/Sanction.js";
+import Employee from "../models/Employees.js";
+import xlsx from "xlsx";
+
+// const mongoURI =    "mongodb+srv://manish:OnlyoneLoan%40007@cluster0.vxzgi.mongodb.net/LoanSystem?retryWrites=true&w=majority&appName=Cluster0";
+const mongoURI =
+    "mongodb+srv://ajay:zdYryDsVh90hIhMc@crmproject.4u20b.mongodb.net/LoanSystem?retryWrites=true&w=majority&appName=CRMProject";
 
 const migrateApplicationsToSanctions = async () => {
     try {
-        await mongoose.connect(
-            "mongodb+srv://manish:OnlyoneLoan%40007@cluster0.vxzgi.mongodb.net/LoanSystem?retryWrites=true&w=majority&appName=Cluster0"
-        );
+        await mongoose.connect(mongoURI);
         console.log("Connected to MongoDB");
 
         const applications = await Application.find({ isRecommended: true });
@@ -58,9 +63,7 @@ const migrateApplicationsToSanctions = async () => {
 
 const updateDisbursals = async () => {
     try {
-        await mongoose.connect(
-            "mongodb+srv://manish:OnlyoneLoan%40007@cluster0.vxzgi.mongodb.net/LoanSystem?retryWrites=true&w=majority&appName=Cluster0"
-        );
+        await mongoose.connect(mongoURI);
 
         console.log("Connected to MongoDB");
 
@@ -107,9 +110,7 @@ const updateDisbursals = async () => {
 
 const addRecommendedByToSanctions = async () => {
     try {
-        await mongoose.connect(
-            "mongodb+srv://manish:OnlyoneLoan%40007@cluster0.vxzgi.mongodb.net/LoanSystem?retryWrites=true&w=majority&appName=Cluster0"
-        );
+        await mongoose.connect(mongoURI);
         console.log("Connected to MongoDB");
 
         // Fetch all sanctions that might be missing recommendedBy
@@ -147,6 +148,98 @@ const addRecommendedByToSanctions = async () => {
         console.log("Disconnected from MongoDB");
     }
 };
+
+const matchPANFromExcel = async () => {
+    try {
+        // Connect to MongoDB
+        await mongoose.connect(mongoURI);
+        console.log("Connected to MongoDB");
+
+        // Load the Excel file
+        const workbook = xlsx.readFile("Speedoloan disbursal.xlsx"); // replace with your file path
+        const sheetName = workbook.SheetNames[0]; // assuming data is in the first sheet
+        const sheet = workbook.Sheets[sheetName];
+
+        const range = xlsx.utils.decode_range(sheet["!ref"]);
+
+        // Extract PAN numbers from column B, starting at row 2
+        const panNumbers = [];
+
+        for (let row = 1; row <= range.e.r; row++) {
+            // row 1 corresponds to B2
+            const cellAddress = `B${row + 1}`;
+            const cell = sheet[cellAddress];
+            if (cell && cell.v) {
+                const cleanedPanNumber = cell.v.replace(/\s+/g, "");
+                // Check if the cell exists and has a value
+                panNumbers.push(cleanedPanNumber);
+            }
+        }
+
+        let leadCount = 0;
+        let applicationCount = 0;
+        let sanctionCount = 0;
+
+        let leads = [];
+        let applications = [];
+        let sanctions = [];
+
+        for (const panNumber of panNumbers) {
+            // Check if PAN exists in the Lead collection
+            const lead = await Lead.findOne({
+                pan: String(panNumber),
+            }).populate({ path: "recommendedBy", select: "fName mName lName" });
+
+            if (lead) {
+                const application = await Application.findOne({
+                    lead: lead._id,
+                }).populate([
+                    { path: "lead" },
+                    { path: "recommendedBy", select: "fName mName lName" },
+                ]);
+
+                if (application) {
+                    const sanction = await Sanction.findOne({
+                        application: application._id,
+                    }).populate([
+                        { path: "application", populate: { path: "lead" } },
+                        { path: "recommendedBy", select: "fName mName lName" },
+                    ]);
+
+                    if (sanction) {
+                        sanctionCount += 1;
+                        // Sanction found, log or process as needed
+                        console.log(`Sanction found: ${sanction._id}`);
+                    } else {
+                        applicationCount += 1;
+                        console.log(
+                            `No sanction found for application ${application._id}`
+                        );
+                    }
+                } else {
+                    leadCount += 1;
+                    console.log(`No application found for lead ${lead._id}`);
+                }
+            } else {
+                console.log(`No lead found for PAN ${panNumber}`);
+            }
+        }
+        console.log(leadCount);
+        console.log(applicationCount);
+        console.log(sanctionCount);
+
+        console.log("PAN matching process completed");
+    } catch (error) {
+        console.error("Error during PAN matching:", error);
+    } finally {
+        // Disconnect from MongoDB
+        await mongoose.disconnect();
+        console.log("Disconnected from MongoDB");
+    }
+};
+
+// Run the script
+matchPANFromExcel();
 
 // addRecommendedByToSanctions();
 
