@@ -27,7 +27,6 @@ router.route("/hold/:id").patch(protect, onHold);
 router.patch("/unhold/:id", protect, unHold);
 router.route("/reject/:id").get(protect, rejected);
 router.route("/send-back/:id").patch(protect, sentBack);
-// router.route("/rejected").get(protect, disbursed);
 router
     .route("/:id")
     .get(protect, getDisbursal)
