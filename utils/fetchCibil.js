@@ -6,10 +6,10 @@ async function fetchCibil(lead) {
         const data = {
             RequestHeader: {
                 CustomerId: "9757",
-                UserId: "STS_TSTNAM",
-                Password: "V2*Pdhbr",
-                MemberNumber: "007FZ03452",
-                SecurityCode: "6XR",
+                UserId: "STS_NAMCCR",
+                Password: "W3#QeicsB",
+                MemberNumber: "007FZ03434",
+                SecurityCode: "2DN",
                 CustRefField: "123456",
                 ProductCode: ["CCR"],
             },

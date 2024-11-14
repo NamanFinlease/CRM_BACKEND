@@ -433,13 +433,14 @@ export const fetchCibil = asyncHandler(async (req, res) => {
     }
 
     if (!lead.cibilScore) {
-        // const response = await equifax(lead);
+        const response = await equifax(lead);
         // await cibilPdf(lead);
         // console.log(pdfResult);
 
-        const value = "720";
-        // const value = response?.CCRResponse?.CIRReportDataLst[0]?.CIRReportData
-        //     ?.ScoreDetails[0]?.Value || "720";
+        // const value = "720";
+        const value =
+            response?.CCRResponse?.CIRReportDataLst[0]?.CIRReportData
+                ?.ScoreDetails[0]?.Value;
 
         if (!value) {
             return res.status(400).json({

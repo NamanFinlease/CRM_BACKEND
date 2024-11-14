@@ -208,27 +208,58 @@ const matchPANFromExcel = async () => {
 
                     if (sanction) {
                         sanctionCount += 1;
+                        sanctions.push(
+                            `${sanction.application.lead.pan} in Sanction`
+                        );
                         // Sanction found, log or process as needed
-                        console.log(`Sanction found: ${sanction._id}`);
+                        // console.log(`Sanction found: ${sanction._id}`);
                     } else {
                         applicationCount += 1;
-                        console.log(
-                            `No sanction found for application ${application._id}`
+                        applications.push(
+                            `${application.lead.pan} in Application`
                         );
+                        // console.log(
+                        //     `No sanction found for application ${application._id}`
+                        // );
                     }
                 } else {
                     leadCount += 1;
-                    console.log(`No application found for lead ${lead._id}`);
+                    leads.push(`${lead.pan} in Lead`);
+                    // console.log(`No application found for lead ${lead._id}`);
                 }
             } else {
                 console.log(`No lead found for PAN ${panNumber}`);
             }
         }
-        console.log(leadCount);
-        console.log(applicationCount);
-        console.log(sanctionCount);
 
-        console.log("PAN matching process completed");
+        // Prepare data for Excel with leads in column A, applications in column B, and sanctions in column C
+        const maxLength = Math.max(
+            leads.length,
+            applications.length,
+            sanctions.length
+        );
+        const data = [
+            ["Lead", "Application", "Sanction"], // Header row
+            ...Array.from({ length: maxLength }, (_, i) => [
+                leads[i] || "", // Column A
+                applications[i] || "", // Column B
+                sanctions[i] || "", // Column C
+            ]),
+        ];
+
+        // Create a new workbook and worksheet
+        const newWorkbook = xlsx.utils.book_new();
+        const newWorksheet = xlsx.utils.aoa_to_sheet(data);
+
+        // Append the worksheet to the workbook
+        xlsx.utils.book_append_sheet(newWorkbook, newWorksheet, "PAN Results");
+
+        // Write the workbook to a file
+        xlsx.writeFile(newWorkbook, "PAN_Matching_Results.xlsx");
+
+        console.log(
+            "PAN matching process completed and results saved to Excel"
+        );
     } catch (error) {
         console.error("Error during PAN matching:", error);
     } finally {
