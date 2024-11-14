@@ -225,12 +225,12 @@ export const recommendDisbursal = asyncHandler(async (req, res) => {
         await disbursal.save();
 
         const logs = await postLogs(
-            disbursal.application.lead._id,
+            disbursal.sanction.application.lead._id,
             "DISBURSAL APPLICATION RECOMMENDED. SENDING TO DISBURSAL HEAD",
-            `${disbursal.application.lead.fName}${
-                disbursal.application.lead.mName &&
-                ` ${disbursal.application.lead.mName}`
-            } ${disbursal.application.lead.lName}`,
+            `${disbursal.sanction.application.lead.fName}${
+                disbursal.sanction.application.lead.mName &&
+                ` ${disbursal.sanction.application.lead.mName}`
+            } ${disbursal.sanction.application.lead.lName}`,
             `Disbursal approved by ${req.employee.fName} ${req.employee.lName}`,
             `${remarks}`
         );
