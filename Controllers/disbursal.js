@@ -73,7 +73,7 @@ export const getDisbursal = asyncHandler(async (req, res) => {
                 populate: [
                     { path: "lead" },
                     { path: "creditManagerId" },
-                    { path: "recommendBy" },
+                    { path: "recommendedBy" },
                 ],
             },
         })
@@ -89,9 +89,9 @@ export const getDisbursal = asyncHandler(async (req, res) => {
 
     // Fetch the CAM data and add to disbursalObj
     const cam = await CamDetails.findOne({
-        leadId: disbursal.application.lead._id,
+        leadId: disbursal?.sanction?.application.lead._id,
     });
-    disbursalObj.application.cam = cam ? { ...cam.toObject() } : null;
+    disbursalObj.sanction.application.cam = cam ? { ...cam.toObject() } : null;
 
     // Fetch banks from Admin model and add to disbursalObj
     const admin = await Admin.findOne();
@@ -130,12 +130,12 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
     }
 
     const logs = await postLogs(
-        disbursal.application.lead._id,
+        disbursal?.sanction?.application.lead._id,
         "DISBURSAL IN PROCESS",
-        `${disbursal.application.lead.fName}${
-            disbursal.application.lead.mName &&
-            ` ${disbursal.application.lead.mName}`
-        } ${disbursal.application.lead.lName}`,
+        `${disbursal?.sanction?.application.lead.fName}${
+            disbursal?.sanction?.application.lead.mName &&
+            ` ${disbursal?.sanction?.application.lead.mName}`
+        } ${disbursal?.sanction?.application.lead.lName}`,
         `Disbursal application approved by ${req.employee.fName} ${req.employee.lName}`
     );
 
