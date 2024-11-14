@@ -1,4 +1,5 @@
 import axios from "axios";
+import { yyyy_mm_dd } from "./dateFormatter.js";
 
 async function fetchCibil(lead) {
     try {
@@ -18,7 +19,7 @@ async function fetchCibil(lead) {
                 FirstName: fName,
                 MiddleName: mName ?? "",
                 LastName: lName ?? "",
-                DOB: dob,
+                DOB: yyyy_mm_dd(dob),
                 InquiryAddresses: [
                     {
                         seq: "1",
