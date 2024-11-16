@@ -123,8 +123,8 @@ export const onHold = asyncHandler(async (req, res) => {
             {
                 path: "sanction",
                 populate: {
-                    path: "application",
-                    populate: "lead",
+                    path:"application",
+                    populate:"lead"
                 },
             },
             { path: "disbursalManagerId", select: "fName mName lName" },
@@ -135,16 +135,16 @@ export const onHold = asyncHandler(async (req, res) => {
         }
 
         logs = await postLogs(
-            disbursal.application.lead._id,
-            "DISBURSAL ON HOLD",
-            `${disbursal.application.lead.fName}${
-                disbursal.application.lead.mName &&
-                ` ${disbursal.application.lead.mName}`
+            disbursal.sanction.application.lead._id,
+            "DISBURSAL APPLICATION ON HOLD",
+            `${disbursal.sanction.application.lead.fName}${
+                disbursal.sanction.application.lead.mName &&
+                ` ${disbursal.sanction.application.lead.mName}`
             }${
-                disbursal.application.lead.lName &&
-                ` ${disbursal.application.lead.lName}`
+                disbursal.sanction.application.lead.lName &&
+                ` ${disbursal.sanction.application.lead.lName}`
             }`,
-            `Disbursal on hold by ${disbursal.disbursalManagerId.fName} ${disbursal.disbursalManagerId.lName}`,
+            `Disbursal on hold by ${disbursal.sanction.application.creditManagerId.fName} ${disbursal.sanction.application.creditManagerId.lName}`,
             `${reason}`
         );
 

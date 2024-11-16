@@ -88,6 +88,10 @@ const disbursalSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Employee",
         },
+        sanctienedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Employee",
+        },
         disbursedAt: {
             type: Date,
         },

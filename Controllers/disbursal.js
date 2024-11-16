@@ -66,8 +66,9 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
 export const getDisbursal = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const disbursal = await Disbursal.findOne({ _id: id })
-        .populate({
+        .populate([{
             path: "sanction", // Populating the 'sanction' field in Disbursal
+            path: "recommendedBy", // Populating the 'sanction' field in Disbursal
             populate: {
                 path: "application", // Inside 'sanction', populate the 'application' field
                 populate: [
@@ -76,7 +77,7 @@ export const getDisbursal = asyncHandler(async (req, res) => {
                     { path: "recommendedBy" },
                 ],
             },
-        })
+        }])
         .populate("disbursedBy");
 
     if (!disbursal) {
@@ -154,12 +155,16 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
                 $ne: null,
             },
             isRecommended: { $ne: true },
+            isRejected: { $ne: true },
+            onHold: { $ne: true },
             isApproved: { $ne: true },
         };
     } else if (req.activeRole === "disbursalManager") {
         query = {
             disbursalManagerId: req.employee.id,
             isRecommended: { $ne: true },
+            isRejected: { $ne: true },
+            onHold: { $ne: true },
         };
     } else {
         res.status(401);

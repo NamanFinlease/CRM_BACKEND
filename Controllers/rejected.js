@@ -87,10 +87,10 @@ export const rejected = asyncHandler(async (req, res) => {
             id,
             { isRejected: true, rejectedBy: req.employee._id },
             { new: true }
-        ).populate(
+        ).populate([
             { path: "rejectedBy", select: "fName mName lName" },
             { path: "application", populate: { path: "lead" } }
-        );
+        ]);
 
         if (!sanction) {
             throw new Error("Sanction not found!!");
@@ -117,13 +117,13 @@ export const rejected = asyncHandler(async (req, res) => {
             id,
             { isRejected: true, rejectedBy: req.employee._id },
             { new: true }
-        ).populate(
+        ).populate([
             { path: "rejectedBy", select: "fName mName lName" },
             {
                 path: "sanction",
                 populate: { path: "application", populate: { path: "lead" } },
             }
-        );
+        ]);
         if (!disbursal) {
             throw new Error("Disbursal not found!!");
         }
@@ -215,10 +215,10 @@ export const getRejected = asyncHandler(async (req, res) => {
         .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate(
+        .populate([
             { path: "rejectedBy", select: "fName mName lName" },
             { path: "application", populate: { path: "lead" } }
-        );
+        ]);
 
     const totalSanctions = sanctions.length;
 
@@ -226,7 +226,7 @@ export const getRejected = asyncHandler(async (req, res) => {
         .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate(
+        .populate([
             { path: "rejectedBy", select: "fName mName lName" },
             {
                 path: "sanction",
@@ -235,7 +235,7 @@ export const getRejected = asyncHandler(async (req, res) => {
                     populate: { path: "lead" },
                 },
             }
-        );
+        ]);
 
     const totalDisbursals = disbursals.length;
 

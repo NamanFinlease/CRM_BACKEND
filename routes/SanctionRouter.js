@@ -3,8 +3,9 @@ const router = express.Router();
 import { onHold, unHold, getHold } from "../Controllers/holdUnhold.js";
 import { rejected, getRejected } from "../Controllers/rejected.js";
 import {
-    getRecommendedApplications,
+    getPendingSanctions,
     getSanction,
+    recommendedApplications,
     sanctionApprove,
     sanctionPreview,
     sanctioned,
@@ -13,7 +14,8 @@ import { sentBack } from "../Controllers/sentBack.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 router.route("/approved").get(protect, sanctioned);
-router.get("/recommended", protect, getRecommendedApplications);
+router.get("/pending", protect, getPendingSanctions);
+router.get("/recommended", protect, recommendedApplications);
 router.get("/hold", protect, getHold);
 router.get("/rejected", protect, getRejected);
 router.get("/:id", protect, getSanction);
