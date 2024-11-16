@@ -12,7 +12,7 @@ import Sanction from "../models/Sanction.js";
 // @desc Get the forwarded applications
 // @route GET /api/sanction/recommended
 // @access Private
-export const getRecommendedApplications = asyncHandler(async (req, res) => {
+export const getPendingSanctions = asyncHandler(async (req, res) => {
     if (req.activeRole === "sanctionHead") {
         const page = parseInt(req.query.page) || 1; // current page
         const limit = parseInt(req.query.limit) || 10; // items per page
@@ -47,6 +47,82 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
         });
     }
 });
+
+// @desc Get the forwarded applications
+// @route GET /api/sanction/recommended
+// @access Private
+
+export const recommendedApplications = asyncHandler(async(req,res) => {
+    if (req.activeRole === "creditManager") {
+        const page = parseInt(req.query.page) || 1; // current page
+        const limit = parseInt(req.query.limit) || 10; // items per page
+        const skip = (page - 1) * limit;
+
+        const query = {
+            recommendedBy:req.employee._id.toString(),
+            isRejected: { $ne: true },
+            onHold: { $ne: true },
+            eSigned: { $ne: true },
+        };
+
+        const recommended = await Sanction.find(query)
+            .skip(skip)
+            .limit(limit)
+            .sort({ updatedAt: -1 })
+            .populate({
+                path: "application",
+                populate: [
+                    { path: "lead" },
+                    // { path: "recommendedBy", select: "fName mName lName" },
+                ],
+            });
+
+
+        const totalRecommended = await Sanction.countDocuments(query);
+
+        return res.json({
+            totalRecommended,
+            totalPages: Math.ceil(totalRecommended / limit),
+            currentPage: page,
+            recommended,
+        });
+    }
+
+    if (req.activeRole === "sanctionHead" || activeRole === "admin") {
+        const page = parseInt(req.query.page) || 1; // current page
+        const limit = parseInt(req.query.limit) || 10; // items per page
+        const skip = (page - 1) * limit;
+
+        const query = {
+            isRejected: { $ne: true },
+            onHold: { $ne: true },
+            isDisbursed: { $ne: true },
+        };
+
+        const recommended = await Sanction.find(query)
+            .skip(skip)
+            .limit(limit)
+            .sort({ updatedAt: -1 })
+            .populate({
+                path: "application",
+                populate: [
+                    { path: "lead" },
+                    { path: "recommendedBy", select: "fName mName lName" },
+                ],
+            });
+
+
+        const totalRecommended = await Sanction.countDocuments(query);
+
+        return res.json({
+            totalRecommended,
+            totalPages: Math.ceil(totalRecommended / limit),
+            currentPage: page,
+            recommended,
+        });
+    }
+
+})
 
 // @desc Get sanction
 // @route GET /api/sanctions/:id
@@ -160,12 +236,12 @@ export const sanctioned = asyncHandler(async (req, res) => {
     if (req.activeRole === "creditManager") {
         query = {
             creditManagerId:req.employee._id.toString(),
-            isApproved: { $eq: true },
             eSigned: { $ne: true },
         };
     } else if (req.activeRole === "sanctionHead") {
         query = {
-            isApproved: { $eq: true },
+            // eSigned: { $eq: true },
+            isApproved:{$eq: true},
             isDisbursed: { $ne: true },
         };
     }
@@ -180,7 +256,6 @@ export const sanctioned = asyncHandler(async (req, res) => {
                 { path: "recommendedBy", select: "fName mName lName" },
             ],
         })
-        .populate({ path: "approvedBy", select: "fName mName lName" });
 
     const totalSanctions = await Sanction.countDocuments(query);
 
