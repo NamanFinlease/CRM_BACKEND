@@ -8,10 +8,7 @@ import Sanction from "../models/Sanction.js";
 import Employee from "../models/Employees.js";
 import xlsx from "xlsx";
 
-const mongoURI =
-    "mongodb+srv://manish:OnlyoneLoan%40007@cluster0.vxzgi.mongodb.net/LoanSystem1?retryWrites=true&w=majority&appName=Cluster0";
-// const mongoURI =
-//     "mongodb+srv://ajay:zdYryDsVh90hIhMc@crmproject.4u20b.mongodb.net/LoanSystem?retryWrites=true&w=majority&appName=CRMProject";
+const mongoURI = process.env.MONGO_URI;
 
 // MongoDB Connection
 async function connectToDatabase() {
