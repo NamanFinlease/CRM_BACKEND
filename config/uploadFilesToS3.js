@@ -29,11 +29,17 @@ async function uploadFilesToS3(buffer, key) {
 
 // Delete old files from S3
 async function deleteFilesFromS3(key) {
-    const params = {
-        Bucket: bucketName,
-        Key: key,
-    };
-    return await s3.deleteObject(params).promise();
+    try {
+        const params = {
+            Bucket: bucketName,
+            Key: key,
+        };
+        await s3.deleteObject(params).promise();
+        console.log(`File deleted successfully: ${key}`);
+    } catch (error) {
+        console.error(`Error deleting file: ${key}`, error);
+        throw new Error("Failed to delete old file from S3");
+    }
 }
 
 // Generate a pre-signed URL for each document

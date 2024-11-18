@@ -102,6 +102,11 @@ const leadSchema = new mongoose.Schema(
             ref: "Employee",
         },
 
+        documents: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Document",
+        },
+
         document: {
             singleDocuments: [
                 {

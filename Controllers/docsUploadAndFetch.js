@@ -1,6 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
-import Lead from "../models/Leads.js";
+import Documents from "../models/Documents.js";
 import Employee from "../models/Employees.js";
+import Lead from "../models/Leads.js";
 import { postLogs } from "./logs.js";
 import { uploadDocs, getDocs } from "../utils/docsUploadAndFetch.js";
 
@@ -8,6 +9,7 @@ import { uploadDocs, getDocs } from "../utils/docsUploadAndFetch.js";
 // @route PATCH /api/leads/docs/:id or /api/applications/docs/:id
 // @access Private
 export const addDocs = asyncHandler(async (req, res) => {
+    console.log("testing");
     const { id } = req.params;
     let employeeId;
 
@@ -18,9 +20,13 @@ export const addDocs = asyncHandler(async (req, res) => {
         throw new Error("Lead not found");
     }
 
+    const docs = await Documents.findOne({ pan: lead.pan });
+
     if (req.activeRole === "screener" || req.activeRole === "creditManager") {
         employeeId = req.employee._id.toString();
     }
+
+    console.log(req.files);
 
     if (!req.files) {
         res.status(400);
@@ -54,7 +60,7 @@ export const addDocs = asyncHandler(async (req, res) => {
             (!aadhaarFrontUploaded && !aadhaarBackUploaded && !eAadhaarUploaded)
         ) {
             // Proceed with document upload
-            const result = await uploadDocs(lead, req.files, remarks);
+            const result = await uploadDocs(docs, req.files, remarks);
             if (!result) {
                 res.status(400);
                 throw new Error("Couldn't store documents.");
@@ -96,8 +102,9 @@ export const getDocuments = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("Lead not found!!!");
     }
+    const docs = await Document.findOne({ pan: lead.pan });
 
-    const result = await getDocs(lead, docType, docId);
+    const result = await getDocs(docs, docType, docId);
 
     // Return the pre-signed URL for this specific document
     res.json({

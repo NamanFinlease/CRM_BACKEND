@@ -91,35 +91,13 @@ const disbursalSchema = new mongoose.Schema(
         disbursedAt: {
             type: Date,
         },
+        isClosed: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );
-
-// Pre-save hook to generate custom auto-incrementing loanNo
-disbursalSchema.pre("save", async function (next) {
-    if (this.isNew) {
-        try {
-            // Find the most recent disbursal record
-            const lastDisbursal = await mongoose
-                .model("Disbursal")
-                .findOne({})
-                .sort({ loanNo: -1 })
-                .exec();
-
-            // Extract the numeric part, increment it, or start from 1 if no previous record exists
-            const lastSequence = lastDisbursal
-                ? parseInt(lastDisbursal.loanNo.slice(7))
-                : 0;
-            const newSequence = lastSequence + 1;
-
-            // Set the new loanNo with zero-padded sequence to 11 digits
-            this.loanNo = `NMFSPE${String(newSequence).padStart(11, 0)}`;
-        } catch (error) {
-            return next(error);
-        }
-    }
-    next();
-});
 
 const Disbursal = mongoose.model("Disbursal", disbursalSchema);
 export default Disbursal;

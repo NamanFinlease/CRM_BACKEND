@@ -36,19 +36,6 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
                 },
             });
 
-        disbursals.map(async (disburse) => {
-            // Convert disbursal to a plain object to make it mutable
-            const disbursalObj = disburse.toObject();
-            if (disburse.application) {
-                const application = await Application.findById(
-                    disburse.application.toString()
-                );
-                disbursalObj.application = application
-                    ? { ...application.toObject() }
-                    : null;
-            }
-        });
-
         const totalDisbursals = await Disbursal.countDocuments(query);
 
         return res.json({

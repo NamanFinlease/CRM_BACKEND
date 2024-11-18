@@ -1,6 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Lead from "../models/Leads.js";
 import Application from "../models/Applications.js";
+import Documents from "../models/Documents.js";
 import Employee from "../models/Employees.js";
 import { postLogs } from "./logs.js";
 import { applicantDetails } from "./applicantPersonalDetails.js";
@@ -35,6 +36,10 @@ export const createLead = asyncHandler(async (req, res) => {
         source,
     } = req.body;
 
+    const docs = await Documents.create({
+        pan: pan,
+    });
+
     const newLead = await Lead.create({
         fName,
         mName: mName
@@ -47,6 +52,7 @@ export const createLead = asyncHandler(async (req, res) => {
         dob: new Date(dob),
         aadhaar,
         pan,
+        document: docs._id,
         mobile: String(mobile),
         alternateMobile: alternateMobile ? String(alternateMobile) : "",
         personalEmail,

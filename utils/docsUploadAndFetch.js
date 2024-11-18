@@ -5,12 +5,13 @@ import {
 } from "../config/uploadFilesToS3.js";
 import getMimeTypeForDocType from "../utils/getMimeTypeForDocType.js";
 import Lead from "../models/Leads.js";
+import Documents from "../models/Documents.js";
 
-export const uploadDocs = async (lead, files, remarks, options = {}) => {
+export const uploadDocs = async (docs, files, remarks, options = {}) => {
     const { isBuffer = false, buffer, fieldName = "" } = options;
 
     // Prepare an array to store all upload promises
-    const uploadPromises = [];
+    // const uploadPromises = [];
     const singleDocUpdates = [];
     const multipleDocUpdates = {
         bankStatement: [],
@@ -20,23 +21,23 @@ export const uploadDocs = async (lead, files, remarks, options = {}) => {
 
     if (isBuffer && fieldName) {
         // Handle buffer
-        const key = `${lead._id}/${fieldName}-${Date.now()}.pdf`;
+        const key = `${docs.pan}/${fieldName}-${Date.now()}.pdf`;
 
         // Check if the document type already exists in the lead's document.singleDocument array
-        const existingDocIndex = lead.document.singleDocuments.findIndex(
+        const existingDocIndex = docs.document.singleDocuments.findIndex(
             (doc) => doc.type === fieldName
         );
 
         if (existingDocIndex !== -1) {
             // Delete the old file and upload the new file
             const oldFileKey =
-                lead.document.singleDocuments[existingDocIndex].url;
+                docs.document.singleDocuments[existingDocIndex].url;
             if (oldFileKey) {
                 await deleteFilesFromS3(oldFileKey);
             }
             // Upload the new file
             const res = await uploadFilesToS3(buffer, key);
-            lead.document.singleDocuments[existingDocIndex].url = res.Key;
+            docs.document.singleDocuments[existingDocIndex].url = res.Key;
         } else {
             // If document type does not exist, add it to the singleDocuments array
             const res = await uploadFilesToS3(buffer, key);
@@ -61,28 +62,28 @@ export const uploadDocs = async (lead, files, remarks, options = {}) => {
 
             if (isSingleType) {
                 const file = fileArray[0]; // Get the first file for each field
-                const key = `${lead._id}/${fieldName}-${Date.now()}-${
+                const key = `${docs.pan}/${fieldName}-${Date.now()}-${
                     file.originalname
                 }`; // Construct a unique S3 key
                 // Check if the document type already exists in the lead's document array
                 const existingDocIndex =
-                    lead.document.singleDocuments.findIndex(
+                    docs.document.singleDocuments.findIndex(
                         (doc) => doc.type === fieldName
                     );
 
                 if (existingDocIndex !== -1) {
                     // Old file URL stored in document
                     const oldFileKey =
-                        lead.document.singleDocuments[existingDocIndex].url;
+                        docs.document.singleDocuments[existingDocIndex].url;
                     if (oldFileKey) {
                         await deleteFilesFromS3(oldFileKey);
                     }
                     const res = await uploadFilesToS3(file.buffer, key);
                     // Update the existing document's URL
-                    lead.document.singleDocuments[existingDocIndex].url =
+                    docs.document.singleDocuments[existingDocIndex].url =
                         res.Key;
 
-                    lead.document.singleDocuments[existingDocIndex].remarks =
+                    docs.document.singleDocuments[existingDocIndex].remarks =
                         remarks;
                 } else {
                     // If document type does not exist, add it to the singleDocuments array
@@ -99,13 +100,13 @@ export const uploadDocs = async (lead, files, remarks, options = {}) => {
                 for (const [index, file] of fileArray.entries()) {
                     // Get the current count of documents for this field in the database
                     const existingDocsCount =
-                        lead.document.multipleDocuments[fieldName]?.length || 0;
+                        docs.document.multipleDocuments[fieldName]?.length || 0;
 
                     const name = `${fieldName}_${
                         existingDocsCount + index + 1
                     }`;
                     const key = `${
-                        lead._id
+                        docs.pan
                     }/${fieldName}/${fieldName}-${Date.now()}-${
                         file.originalname
                     }`;
@@ -126,30 +127,30 @@ export const uploadDocs = async (lead, files, remarks, options = {}) => {
 
     // Add single document updates to the lead document
     if (singleDocUpdates.length > 0) {
-        lead.document.singleDocuments.push(...singleDocUpdates);
+        docs.document.singleDocuments.push(...singleDocUpdates);
     }
 
     // Add multiple document updates to the lead document
     for (const [field, docs] of Object.entries(multipleDocUpdates)) {
         if (docs.length > 0) {
-            lead.document.multipleDocuments[field].push(...docs);
+            docs.document.multipleDocuments[field].push(...docs);
         }
     }
 
     // Use findByIdAndUpdate to only update the document field
-    const updatedLead = await Lead.findByIdAndUpdate(
-        lead._id,
-        { document: lead.document },
+    const updatedDocs = await Documents.findByIdAndUpdate(
+        docs._id,
+        { document: docs.document },
         { new: true, runValidators: false } // Disable validation for other fields
     );
 
-    if (!updatedLead) {
+    if (!updatedDocs) {
         return { success: false };
     }
     return { success: true };
 };
 
-export const getDocs = async (lead, docType, docId) => {
+export const getDocs = async (docs, docType, docId) => {
     // Find the specific document based on docType
     let document;
     const isSingleType = [
@@ -162,11 +163,11 @@ export const getDocs = async (lead, docType, docId) => {
     ].includes(docType);
 
     if (isSingleType) {
-        document = lead.document.singleDocuments.find(
+        document = docs.document.singleDocuments.find(
             (doc) => doc.type === docType
         );
     } else {
-        document = lead.document.multipleDocuments[docType]?.find(
+        document = docs.document.multipleDocuments[docType]?.find(
             (doc) => doc._id.toString() === docId
         );
     }

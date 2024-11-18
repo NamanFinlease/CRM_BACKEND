@@ -4,8 +4,10 @@ import cors from "cors"; // Import cors
 import connectDB from "./config/db.js";
 import "dotenv/config.js";
 import morgan from "morgan";
+import accountRouter from "./routes/AccountRouter.js";
 import applicantRouter from "./routes/ApplicantRouter.js";
 import applicationRouter from "./routes/ApplicationRouter.js";
+import collectionRouter from "./routes/CollectionRouter.js";
 import leadRouter from "./routes/LeadsRouter.js"; // Import routes
 import employeeRouter from "./routes/EmployeesRouter.js";
 import verifyRouter from "./routes/VerifyRouter.js";
@@ -47,10 +49,12 @@ app.get("/", (req, res) => {
     res.send("API is running.......");
 });
 
+app.use("/api/accounts", accountRouter); // Use the account routes
 app.use("/api/applications", applicationRouter); // Use the application routes
 app.use("/api/applicant", applicantRouter); // Use the applicant's routes
-app.use("/api/employees", employeeRouter); // Use the employee routes
+app.use("/api/collections", collectionRouter); // Use the collection routes
 app.use("/api/disbursals", disbursalRouter); // Use the disbursal routes
+app.use("/api/employees", employeeRouter); // Use the employee routes
 app.use("/api/leads", leadRouter); // Use the lead routes
 app.use("/api/sanction", sanctionRouter); // Use teh sanction letter
 app.use("/api/verify", verifyRouter); // Use the verify routes sevice to verify PAN and aadhaar

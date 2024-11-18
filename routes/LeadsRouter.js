@@ -15,7 +15,10 @@ import {
 } from "../Controllers/leads.js";
 import { viewLogs } from "../Controllers/logs.js";
 import { rejected, getRejected } from "../Controllers/rejected.js";
-import { totalRecords , totalRecordsForSupervisor } from "../Controllers/totalRecords.js";
+import {
+    totalRecords,
+    totalRecordsForSupervisor,
+} from "../Controllers/totalRecords.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -33,9 +36,9 @@ const uploadFields = upload.fields([
 
 // Other routes
 router.route("/").post(createLead).get(protect, getAllLeads);
-router.route("/bulk-upload").post(protect, upload.single("csv"), bulkUpload);
+router.route("/bulk-upload").post(upload.single("csv"), bulkUpload);
 router.get("/totalRecords", protect, totalRecords);
-router.get("/totalRecordsForSupervisor" , totalRecordsForSupervisor);
+router.get("/totalRecordsForSupervisor", totalRecordsForSupervisor);
 router.route("/allocated").get(protect, allocatedLeads);
 router.get("/hold", protect, getHold);
 router.get("/reject", protect, getRejected);

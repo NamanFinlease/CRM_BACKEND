@@ -22,6 +22,8 @@ const protect = asyncHandler(async (req, res, next) => {
                 supervisor: ["supervisor"],
                 sanction: ["screener", "creditManager", "sanctionHead"],
                 disbursal: ["disbursalManager", "disbursalHead"],
+                collection: ["collectionExecutive", "collectionHead"],
+                account: ["accountExecutive", "accountHead"],
             };
             const empRoles = req.employee.empRole;
             req.roles = new Set();

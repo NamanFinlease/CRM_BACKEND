@@ -1,5 +1,6 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Application from "../models/Applications.js";
+import { createActiveLead } from "./collection.js";
 import { dateFormatter } from "../utils/dateFormatter.js";
 import Disbursal from "../models/Disbursal.js";
 import { generateSanctionLetter } from "../utils/sendsanction.js";
@@ -35,8 +36,6 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
                 ],
             });
 
-        const applications = await Application;
-
         const totalSanctions = await Sanction.countDocuments(query);
 
         return res.json({
@@ -49,7 +48,7 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
 });
 
 // @desc Get sanction
-// @route GET /api/sanctions/:id
+// @route GET /api/sanction/:id
 // @access Private
 export const getSanction = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -113,8 +112,14 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
             return res.json({ success: false });
         }
 
+        sanction.sanctionDate = response.sanctionDate;
+        sanction.isApproved = true;
+        sanction.approvedBy = req.employee._id.toString();
+        await sanction.save();
+
         const newDisbursal = new Disbursal({
             sanction: sanction._id,
+            loanNo: sanction.loanNo,
         });
 
         const disbursalRes = await newDisbursal.save();
@@ -124,10 +129,18 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
             throw new Error("Could not approve this application!!");
         }
 
-        sanction.sanctionDate = response.sanctionDate;
-        sanction.isApproved = true;
-        sanction.approvedBy = req.employee._id.toString();
-        await sanction.save();
+        const newActiveLead = createActiveLead(
+            sanction.application.applicant.pan,
+            sanction.loanNo,
+            disbursalRes._id
+        );
+
+        if (!newActiveLead.success) {
+            res.status(400);
+            throw new Error(
+                "Could not create an active lead for this record!!"
+            );
+        }
 
         const logs = await postLogs(
             sanction.application.lead,
