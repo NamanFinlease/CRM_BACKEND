@@ -127,23 +127,59 @@ export const totalRecords = asyncHandler(async (req, res) => {
     // Disbursal Manager
     const totalDisbursals = disbursals.length;
     const newDisbursals = disbursals.filter(
-        (disbursalApplication) =>
-            !disbursalApplication.disbursalManagerId &&
-            !disbursalApplication.isRecommended
+        (disbursal) =>
+            !disbursal.disbursalManagerId &&
+            !disbursal.isRecommended
     ).length;
 
     let allocatedDisbursals = disbursals.filter(
-        (disbursalApplication) =>
-            disbursalApplication.disbursalManagerId &&
-            !disbursalApplication.isRecommended &&
-            !disbursalApplication.isApproved
+        (disbursal) =>
+            disbursal.disbursalManagerId &&
+            !disbursal.isRecommended &&
+            !disbursal.onHold &&
+            !disbursal.isRejected &&
+            !disbursal.isDisbursed
     );
+    let pendingDisbursals = disbursals.filter(
+        (disbursal) =>
+            disbursal.disbursalManagerId &&
+            disbursal.isRecommended &&
+            !disbursal.onHold &&
+            !disbursal.isRejected &&
+            !disbursal.isDisbursed
+    ).length;
+    let disbursed = disbursals.filter(
+        (disbursal) =>
+            disbursal.disbursalManagerId &&
+            disbursal.isRecommended &&
+            disbursal.isDisbursed &&
+            !disbursal.onHold &&
+            !disbursal.isRejected 
+    ).length;
     if (req.activeRole === "disbursalManager") {
         allocatedDisbursals = allocatedDisbursals.filter(
-            (disbursalApplication) =>
-                disbursalApplication.disbursalManagerId.toString() ===
+            (disbursal) =>
+                disbursal.disbursalManagerId.toString() ===
                 req.employee._id.toString()
-        );
+        ).length;
+        return res.json({
+            disbursal: {
+                newDisbursals,
+                allocatedDisbursals
+            },
+        });
+    }
+    if (req.activeRole === "disbursalHead") {
+        return res.json({
+          
+            disbursal: {
+                newDisbursals,
+                allocatedDisbursals: allocatedDisbursals.length,
+                pendingDisbursals,
+                disbursed
+            },
+        });
+        
     }
 
     res.json({

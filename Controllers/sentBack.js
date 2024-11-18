@@ -93,7 +93,7 @@ export const sentBack = asyncHandler(async (req, res) => {
         }
     } else if (req.activeRole === "disbursalHead") {
         if (sendTo === "disbursalManager") {
-            sanction = await Sanction.findOneAndDelete({
+            sanction = await Sanction.findOne({
                 application: application._id,
             });
             disbursal = await Disbursal.findOne({

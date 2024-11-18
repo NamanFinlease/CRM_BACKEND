@@ -219,6 +219,9 @@ const matchPANFromExcel = async () => {
                         applications.push(
                             `${application.lead.pan} in Application`
                         );
+                        // console.log(
+                        //     `No sanction found for application ${application._id}`
+                        // );
                     }
                 } else {
                     leadCount += 1;

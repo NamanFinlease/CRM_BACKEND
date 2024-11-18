@@ -53,17 +53,18 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
 export const getDisbursal = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const disbursal = await Disbursal.findOne({ _id: id })
-        .populate({
+        .populate([{
             path: "sanction", // Populating the 'sanction' field in Disbursal
+            path: "recommendedBy", // Populating the 'sanction' field in Disbursal
             populate: {
                 path: "application", // Inside 'sanction', populate the 'application' field
                 populate: [
                     { path: "lead" },
                     { path: "creditManagerId" },
-                    { path: "recommendBy" },
+                    { path: "recommendedBy" },
                 ],
             },
-        })
+        }])
         .populate("disbursedBy");
 
     if (!disbursal) {
@@ -76,9 +77,9 @@ export const getDisbursal = asyncHandler(async (req, res) => {
 
     // Fetch the CAM data and add to disbursalObj
     const cam = await CamDetails.findOne({
-        leadId: disbursal.application.lead._id,
+        leadId: disbursal?.sanction?.application.lead._id,
     });
-    disbursalObj.application.cam = cam ? { ...cam.toObject() } : null;
+    disbursalObj.sanction.application.cam = cam ? { ...cam.toObject() } : null;
 
     // Fetch banks from Admin model and add to disbursalObj
     const admin = await Admin.findOne();
@@ -117,12 +118,12 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
     }
 
     const logs = await postLogs(
-        disbursal.application.lead._id,
+        disbursal?.sanction?.application.lead._id,
         "DISBURSAL IN PROCESS",
-        `${disbursal.application.lead.fName}${
-            disbursal.application.lead.mName &&
-            ` ${disbursal.application.lead.mName}`
-        } ${disbursal.application.lead.lName}`,
+        `${disbursal?.sanction?.application.lead.fName}${
+            disbursal?.sanction?.application.lead.mName &&
+            ` ${disbursal?.sanction?.application.lead.mName}`
+        } ${disbursal?.sanction?.application.lead.lName}`,
         `Disbursal application approved by ${req.employee.fName} ${req.employee.lName}`
     );
 
@@ -141,12 +142,16 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
                 $ne: null,
             },
             isRecommended: { $ne: true },
+            isRejected: { $ne: true },
+            onHold: { $ne: true },
             isApproved: { $ne: true },
         };
     } else if (req.activeRole === "disbursalManager") {
         query = {
             disbursalManagerId: req.employee.id,
             isRecommended: { $ne: true },
+            isRejected: { $ne: true },
+            onHold: { $ne: true },
         };
     } else {
         res.status(401);
@@ -212,12 +217,12 @@ export const recommendDisbursal = asyncHandler(async (req, res) => {
         await disbursal.save();
 
         const logs = await postLogs(
-            disbursal.application.lead._id,
+            disbursal.sanction.application.lead._id,
             "DISBURSAL APPLICATION RECOMMENDED. SENDING TO DISBURSAL HEAD",
-            `${disbursal.application.lead.fName}${
-                disbursal.application.lead.mName &&
-                ` ${disbursal.application.lead.mName}`
-            } ${disbursal.application.lead.lName}`,
+            `${disbursal.sanction.application.lead.fName}${
+                disbursal.sanction.application.lead.mName &&
+                ` ${disbursal.sanction.application.lead.mName}`
+            } ${disbursal.sanction.application.lead.lName}`,
             `Disbursal approved by ${req.employee.fName} ${req.employee.lName}`,
             `${remarks}`
         );
