@@ -20,7 +20,12 @@ const getMimeTypeForDocType = (docUrl, docType) => {
         case "verificationVideo":
             return "video/mp4";
         default:
-            return "application/octet-stream";
+            return  extention === "jpg" ||
+            extention === "jpeg" ||
+            extention === "png" ||
+            extention === "svg"
+            ? "image/jpg"
+            : extention === "mp4" ? "video/mp4" : "application/pdf";
     }
 };
 
