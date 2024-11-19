@@ -11,7 +11,10 @@ export const sentBack = asyncHandler(async (req, res) => {
     const { sendTo, reason } = req.body;
 
     const lead = await Lead.findById(id);
-    let application = await Application.findOne({ lead: id }).populate("lead");
+    let application = await Application.findOne({ lead: id }).populate({
+        path: "lead",
+        populate: { path: "documents" },
+    });
     let sanction;
     let disbursal;
 
@@ -22,7 +25,7 @@ export const sentBack = asyncHandler(async (req, res) => {
             const deletedApplication = await Application.findOneAndDelete({
                 lead: id,
             })
-                .populate("lead")
+                .populate({ path: "lead", populate: { path: "documents" } })
                 .populate({
                     path: "creditManagerId",
                     select: "fName mName lName",
@@ -58,7 +61,7 @@ export const sentBack = asyncHandler(async (req, res) => {
                 application: application._id,
             }).populate({
                 path: "application",
-                populate: { path: "lead" },
+                populate: { path: "lead", populate: { path: "documents" } },
             });
             if (!sanction) {
                 res.status(400);
@@ -103,7 +106,10 @@ export const sentBack = asyncHandler(async (req, res) => {
                     path: "sanction",
                     populate: {
                         path: "application",
-                        populate: { path: "lead" },
+                        populate: {
+                            path: "lead",
+                            populate: { path: "documents" },
+                        },
                     },
                 },
             ]);

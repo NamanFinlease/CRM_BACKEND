@@ -31,7 +31,7 @@ export const getPendingSanctions = asyncHandler(async (req, res) => {
             .populate({
                 path: "application",
                 populate: [
-                    { path: "lead" },
+                    { path: "lead", populate: { path: "documents" } },
                     { path: "recommendedBy", select: "fName mName lName" },
                 ],
             });
@@ -70,7 +70,7 @@ export const recommendedApplications = asyncHandler(async (req, res) => {
             .populate({
                 path: "application",
                 populate: [
-                    { path: "lead" },
+                    { path: "lead", populate: { path: "documents" } },
                     // { path: "recommendedBy", select: "fName mName lName" },
                 ],
             });
@@ -103,7 +103,7 @@ export const recommendedApplications = asyncHandler(async (req, res) => {
             .populate({
                 path: "application",
                 populate: [
-                    { path: "lead" },
+                    { path: "lead", populate: { path: "documents" } },
                     { path: "recommendedBy", select: "fName mName lName" },
                 ],
             });
@@ -188,6 +188,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                                     },
                                 },
                             },
+                            0,
                         ],
                     },
                 },
@@ -295,7 +296,7 @@ export const sanctioned = asyncHandler(async (req, res) => {
         .populate({
             path: "application",
             populate: [
-                { path: "lead" },
+                { path: "lead", populate: { path: "documents" } },
                 { path: "recommendedBy", select: "fName mName lName" },
             ],
         });

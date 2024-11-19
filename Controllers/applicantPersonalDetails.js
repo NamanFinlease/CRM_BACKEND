@@ -103,7 +103,10 @@ export const updateApplicantDetails = asyncHandler(async (req, res) => {
     const updates = req.body;
 
     // Check if the application is present
-    const application = await Application.findOne({ _id: id }).populate("lead");
+    const application = await Application.findOne({ _id: id }).populate({
+        path: "lead",
+        populate: { path: "documents" },
+    });
 
     // Check if credit Manager matches the one in the application document
     if (

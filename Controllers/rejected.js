@@ -65,7 +65,7 @@ export const rejected = asyncHandler(async (req, res) => {
             { isRejected: true, rejectedBy: req.employee._id },
             { new: true }
         )
-            .populate("lead")
+            .populate({ path: "lead", populate: { path: "documents" } })
             .populate({ path: "rejectedBy", select: "fName mName lName" });
 
         if (!application) {
@@ -89,7 +89,10 @@ export const rejected = asyncHandler(async (req, res) => {
             { new: true }
         ).populate([
             { path: "rejectedBy", select: "fName mName lName" },
-            { path: "application", populate: { path: "lead" } }
+            {
+                path: "application",
+                populate: { path: "lead", populate: { path: "documents" } },
+            },
         ]);
 
         if (!sanction) {
@@ -121,8 +124,11 @@ export const rejected = asyncHandler(async (req, res) => {
             { path: "rejectedBy", select: "fName mName lName" },
             {
                 path: "sanction",
-                populate: { path: "application", populate: { path: "lead" } },
-            }
+                populate: {
+                    path: "application",
+                    populate: { path: "lead", populate: { path: "documents" } },
+                },
+            },
         ]);
         if (!disbursal) {
             throw new Error("Disbursal not found!!");
@@ -217,7 +223,7 @@ export const getRejected = asyncHandler(async (req, res) => {
         .limit(limit)
         .populate([
             { path: "rejectedBy", select: "fName mName lName" },
-            { path: "application", populate: { path: "lead" } }
+            { path: "application", populate: { path: "lead" } },
         ]);
 
     const totalSanctions = sanctions.length;
@@ -234,7 +240,7 @@ export const getRejected = asyncHandler(async (req, res) => {
                     path: "application",
                     populate: { path: "lead" },
                 },
-            }
+            },
         ]);
 
     const totalDisbursals = disbursals.length;

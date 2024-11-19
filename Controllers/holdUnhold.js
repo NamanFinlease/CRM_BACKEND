@@ -41,7 +41,9 @@ export const onHold = asyncHandler(async (req, res) => {
             id,
             { onHold: true, heldBy: req.employee._id },
             { new: true }
-        ).populate({ path: "screenerId", select: "fName mName lName" });
+        )
+            .populate({ path: "screenerId", select: "fName mName lName" })
+            .populate("documents");
 
         if (!lead) {
             throw new Error("Lead not found");
@@ -62,7 +64,9 @@ export const onHold = asyncHandler(async (req, res) => {
             id,
             { onHold: true, heldBy: req.employee._id },
             { new: true }
-        ).populate({ path: "creditManagerId", select: "fName mName lName" });
+        )
+            .populate({ path: "lead", populate: { path: "documents" } })
+            .populate({ path: "creditManagerId", select: "fName mName lName" });
 
         if (!application) {
             throw new Error("Application not found");
@@ -88,7 +92,7 @@ export const onHold = asyncHandler(async (req, res) => {
             { path: "heldBy", select: "fName mName lName" },
             {
                 path: "application",
-                populate: { path: "lead" },
+                populate: { path: "lead", populate: { path: "documents" } },
             },
         ]);
 
@@ -123,8 +127,8 @@ export const onHold = asyncHandler(async (req, res) => {
             {
                 path: "sanction",
                 populate: {
-                    path:"application",
-                    populate:"lead"
+                    path: "application",
+                    populate: { path: "lead", populate: { path: "documents" } },
                 },
             },
             { path: "disbursalManagerId", select: "fName mName lName" },
@@ -188,7 +192,9 @@ export const unHold = asyncHandler(async (req, res) => {
             id,
             { onHold: false },
             { new: true }
-        ).populate({ path: "screenerId", select: "fName mName lName" });
+        )
+            .populate({ path: "screenerId", select: "fName mName lName" })
+            .populate("documents");
 
         if (!lead) {
             throw new Error("Lead not found!!!");
@@ -209,7 +215,9 @@ export const unHold = asyncHandler(async (req, res) => {
             id,
             { onHold: false },
             { new: true }
-        ).populate({ path: "creditManagerId", select: "fName mName lName" });
+        )
+            .populate({ path: "lead", populate: { path: "documents" } })
+            .populate({ path: "creditManagerId", select: "fName mName lName" });
 
         if (!application) {
             throw new Error("Application not found!!");
@@ -234,7 +242,7 @@ export const unHold = asyncHandler(async (req, res) => {
             { path: "heldBy", select: "fName mName lName" },
             {
                 path: "application",
-                populate: { path: "lead" },
+                populate: { path: "lead", populate: { path: "documents" } },
             },
         ]);
 
@@ -266,7 +274,10 @@ export const unHold = asyncHandler(async (req, res) => {
         ).populate([
             {
                 path: "sanction",
-                populate: { path: "application", populate: { path: "lead" } },
+                populate: {
+                    path: "application",
+                    populate: { path: "lead", populate: { path: "documents" } },
+                },
             },
             { path: "heldBy", select: "fName mName lName" },
         ]);
@@ -342,6 +353,7 @@ export const getHold = asyncHandler(async (req, res) => {
 
     if (req.activeRole === "screener") {
         leads = await Lead.find(query)
+            .populate("documents")
             .skip(skip)
             .limit(limit)
             .sort({ updatedAt: -1 });
@@ -360,7 +372,7 @@ export const getHold = asyncHandler(async (req, res) => {
         applications = await Application.find(query)
             .skip(skip)
             .limit(limit)
-            .populate("lead")
+            .populate({ path: "lead", populate: { path: "documents" } })
             .sort({ updatedAt: -1 });
         totalRecords = await Application.countDocuments(query);
 
@@ -383,6 +395,7 @@ export const getHold = asyncHandler(async (req, res) => {
                         path: "application",
                         populate: {
                             path: "lead",
+                            populate: { path: "documents" },
                         },
                     },
                 },
