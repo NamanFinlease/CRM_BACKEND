@@ -63,10 +63,10 @@ export const checkApproval = async (
             }
             // Check if all the required documents are present
             const allDocuments = [
-                ...lead?.document?.multipleDocuments?.salarySlip,
-                ...lead?.document?.multipleDocuments?.bankStatement,
-                ...lead?.document?.multipleDocuments?.others,
-                ...lead?.document?.singleDocuments,
+                ...lead?.documents?.document?.multipleDocuments?.salarySlip,
+                ...lead?.documents?.document?.multipleDocuments?.bankStatement,
+                ...lead?.documents?.document?.multipleDocuments?.others,
+                ...lead?.documents?.document?.singleDocuments,
             ];
             const uploadedDocs = allDocuments.map((doc) =>
                 doc.type ? doc.type : doc.url.split("/")[1]

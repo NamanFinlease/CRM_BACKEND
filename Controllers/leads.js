@@ -255,7 +255,7 @@ export const recommendLead = asyncHandler(async (req, res) => {
     const { id } = req.params;
     if (req.activeRole === "screener") {
         // Find the lead by its ID
-        const lead = await Lead.findById(id).populate({
+        const lead = await Lead.findById(id).populate("documents").populate({
             path: "screenerId",
             select: "fName mName lName",
         });
