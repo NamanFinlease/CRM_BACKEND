@@ -26,7 +26,6 @@ const closedSchema = new mongoose.Schema(
                 requestedStatus: {
                     type: String,
                     enum: ["closed", "partialPaid", "settled", "writeOff"],
-                    required: true, // Ensures every record has a valid status
                 },
                 isActive: { type: Boolean, default: true },
                 isClosed: { type: Boolean, default: false },

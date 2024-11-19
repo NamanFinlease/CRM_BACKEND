@@ -53,18 +53,22 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
 export const getDisbursal = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const disbursal = await Disbursal.findOne({ _id: id })
-        .populate([{
-            path: "sanction", // Populating the 'sanction' field in Disbursal
-            path: "recommendedBy", // Populating the 'sanction' field in Disbursal
-            populate: {
-                path: "application", // Inside 'sanction', populate the 'application' field
+        .populate([
+            {
+                path: "sanction", // Populating the 'sanction' field in Disbursal
                 populate: [
-                    { path: "lead" },
-                    { path: "creditManagerId" },
-                    { path: "recommendedBy" },
+                    { path: "recommendedBy", select: "fName mName lName" }, // Populate 'approvedBy' inside 'sanction'
+                    {
+                        path: "application", // Populate 'application' inside 'sanction'
+                        populate: [
+                            { path: "lead" }, // Populate 'lead' inside 'application'
+                            { path: "creditManagerId" }, // Populate 'creditManagerId' inside 'application'
+                            { path: "recommendedBy" }, // Populate 'recommendedBy' inside 'application'
+                        ],
+                    },
                 ],
             },
-        }])
+        ])
         .populate("disbursedBy");
 
     if (!disbursal) {

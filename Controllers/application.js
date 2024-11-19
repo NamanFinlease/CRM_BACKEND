@@ -262,10 +262,10 @@ export const recommendedApplication = asyncHandler(async (req, res) => {
             // Sending the application to sanction
             const newSanction = new Sanction({
                 application: application._id,
+                recommendedBy: req.employee._id,
             });
 
             const response = await newSanction.save();
-            console.log(response);
 
             if (!response) {
                 res.status(400);

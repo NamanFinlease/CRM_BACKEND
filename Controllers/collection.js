@@ -17,24 +17,23 @@ export const createActiveLead = async (pan, loanNo, disbursal) => {
                 return { success: false };
             }
             return { success: true };
-        }
-        // else {
-        //     // If the lead already exists, check if the disbursal ID is already in the data array
-        //     const doesDisbursalExist = existingActiveLead.data.some(
-        //         (entry) => entry.disbursal.toString() === disbursal.toString()
-        //     );
+        } else {
+            // If the lead already exists, check if the disbursal ID is already in the data array
+            const doesDisbursalExist = existingActiveLead.data.some(
+                (entry) => entry.disbursal.toString() === disbursal.toString()
+            );
 
-        //     if (doesDisbursalExist) {
-        //         throw new Error("Disbursal ID already exists.");
-        //     }
-        //     // If disbursal ID is not found, add the new disbursal
-        //     existingActiveLead.data.push({ disbursal: disbursal });
-        //     const res = await existingActiveLead.save();
-        //     if (!res) {
-        //         return { success: false };
-        //     }
-        //     return { success: true };
-        // }
+            if (doesDisbursalExist) {
+                throw new Error("Disbursal ID already exists.");
+            }
+            // If disbursal ID is not found, add the new disbursal
+            existingActiveLead.data.push({ disbursal: disbursal });
+            const res = await existingActiveLead.save();
+            if (!res) {
+                return { success: false };
+            }
+            return { success: true };
+        }
     } catch (error) {
         console.log(error);
     }
@@ -59,16 +58,21 @@ export const activeLeads = asyncHandler(async (req, res) => {
             },
             {
                 $project: {
+                    pan: 1,
                     data: {
-                        $filter: {
-                            input: "$data",
-                            as: "item", // Alias for each element in the array
-                            cond: {
-                                $and: [
-                                    { $eq: ["$$item.isActive", true] }, // Condition for isActive
-                                ],
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$data",
+                                    as: "item", // Alias for each element in the array
+                                    cond: {
+                                        $and: [
+                                            { $eq: ["$$item.isActive", true] }, // Condition for isActive
+                                        ],
+                                    },
+                                },
                             },
-                        },
+                        ],
                     },
                 },
             },

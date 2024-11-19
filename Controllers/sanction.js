@@ -1,5 +1,5 @@
 import asyncHandler from "../middleware/asyncHandler.js";
-import Application from "../models/Applications.js";
+import Closed from "../models/Closed.js";
 import { createActiveLead } from "./collection.js";
 import { dateFormatter } from "../utils/dateFormatter.js";
 import Disbursal from "../models/Disbursal.js";
@@ -50,15 +50,14 @@ export const getPendingSanctions = asyncHandler(async (req, res) => {
 // @desc Get the forwarded applications
 // @route GET /api/sanction/recommended
 // @access Private
-
-export const recommendedApplications = asyncHandler(async(req,res) => {
+export const recommendedApplications = asyncHandler(async (req, res) => {
     if (req.activeRole === "creditManager") {
         const page = parseInt(req.query.page) || 1; // current page
         const limit = parseInt(req.query.limit) || 10; // items per page
         const skip = (page - 1) * limit;
 
         const query = {
-            recommendedBy:req.employee._id.toString(),
+            recommendedBy: req.employee._id.toString(),
             isRejected: { $ne: true },
             onHold: { $ne: true },
             eSigned: { $ne: true },
@@ -75,7 +74,6 @@ export const recommendedApplications = asyncHandler(async(req,res) => {
                     // { path: "recommendedBy", select: "fName mName lName" },
                 ],
             });
-
 
         const totalRecommended = await Sanction.countDocuments(query);
 
@@ -110,7 +108,6 @@ export const recommendedApplications = asyncHandler(async(req,res) => {
                 ],
             });
 
-
         const totalRecommended = await Sanction.countDocuments(query);
 
         return res.json({
@@ -120,8 +117,7 @@ export const recommendedApplications = asyncHandler(async(req,res) => {
             recommended,
         });
     }
-
-})
+});
 
 // @desc Get sanction
 // @route GET /api/sanction/:id
@@ -169,6 +165,41 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
 
         const lead = await Lead.findById({ _id: sanction.application.lead });
 
+        const pipeline = [
+            {
+                $match: {
+                    // Match the parent document where this pan exists
+                    pan: sanction.application.applicant.personalDetails.pan,
+                },
+            },
+            {
+                $project: {
+                    pan: 1,
+                    data: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$data",
+                                    as: "item", // Alias for each element in the array
+                                    cond: {
+                                        $and: [
+                                            { $eq: ["$$item.isActive", true] }, // Condition for isActive
+                                        ],
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+            },
+        ];
+        const activeLead = await Closed.aggregate(pipeline);
+
+        if (activeLead.length > 0) {
+            res.status(403);
+            throw new Error("This PAN already has an active lead!!");
+        }
+
         // Call the generateSanctionLetter utility function
         const emailResponse = await generateSanctionLetter(
             `SANCTION LETTER - ${response.fullname}`,
@@ -205,12 +236,11 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
             throw new Error("Could not approve this application!!");
         }
 
-        const newActiveLead = createActiveLead(
-            sanction.application.applicant.pan,
+        const newActiveLead = await createActiveLead(
+            sanction.application.applicant.personalDetails.pan,
             sanction.loanNo,
             disbursalRes._id
         );
-
         if (!newActiveLead.success) {
             res.status(400);
             throw new Error(
@@ -248,13 +278,13 @@ export const sanctioned = asyncHandler(async (req, res) => {
     let query;
     if (req.activeRole === "creditManager") {
         query = {
-            creditManagerId:req.employee._id.toString(),
+            creditManagerId: req.employee._id.toString(),
             eSigned: { $ne: true },
         };
     } else if (req.activeRole === "sanctionHead") {
         query = {
             // eSigned: { $eq: true },
-            isApproved:{$eq: true},
+            isApproved: { $eq: true },
             isDisbursed: { $ne: true },
         };
     }
@@ -268,7 +298,7 @@ export const sanctioned = asyncHandler(async (req, res) => {
                 { path: "lead" },
                 { path: "recommendedBy", select: "fName mName lName" },
             ],
-        })
+        });
 
     const totalSanctions = await Sanction.countDocuments(query);
 

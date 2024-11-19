@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "dotenv/config.js";
 import Application from "../models/Applications.js";
 import Closed from "../models/Closed.js";
 import Disbursal from "../models/Disbursal.js";
@@ -355,7 +356,7 @@ const updateLoanNumber = async () => {
 
         for (const disbursal of disbursals) {
             await Sanction.updateOne(
-                { _id: disbursal.sanction },
+                { _id: disbursal.sanction.toString() },
                 { $set: { loanNo: disbursal.loanNo } }
             );
         }
@@ -463,10 +464,10 @@ const sanctionActiveLeadsMigration = async () => {
 async function main() {
     await connectToDatabase();
     // await migrateDocuments();
-    // await updateLoanNumber();
+    await updateLoanNumber();
     // await sanctionActiveLeadsMigration();
     // await updateLeadsWithDocumentIds();
-    await matchPANFromExcel();
+    // await matchPANFromExcel();
     // addRecommendedByToSanctions();
     // updateDisbursals();
     // migrateApplicationsToSanctions();
