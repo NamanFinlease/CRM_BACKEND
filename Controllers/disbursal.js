@@ -61,7 +61,7 @@ export const getDisbursal = asyncHandler(async (req, res) => {
                     {
                         path: "application", // Populate 'application' inside 'sanction'
                         populate: [
-                            { path: "lead" }, // Populate 'lead' inside 'application'
+                            { path: "lead", populate: { path: "documents" } }, // Populate 'lead' inside 'application'
                             { path: "creditManagerId" }, // Populate 'creditManagerId' inside 'application'
                             { path: "recommendedBy" }, // Populate 'recommendedBy' inside 'application'
                         ],
