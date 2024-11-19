@@ -463,8 +463,8 @@ const sanctionActiveLeadsMigration = async () => {
 // Main Function to Connect and Run
 async function main() {
     await connectToDatabase();
-    // await migrateDocuments();
-    await updateLoanNumber();
+    await migrateDocuments();
+    // await updateLoanNumber();
     // await sanctionActiveLeadsMigration();
     // await updateLeadsWithDocumentIds();
     // await matchPANFromExcel();

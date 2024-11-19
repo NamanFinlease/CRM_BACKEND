@@ -51,7 +51,10 @@ export const getAllApplication = asyncHandler(async (req, res) => {
 // @access Private
 export const getApplication = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const application = await Application.findOne({ _id: id }).populate("lead");
+    const application = await Application.findOne({ _id: id }).populate({
+        path: "lead",
+        populate: { path: "documents" },
+    });
     if (!application) {
         res.status(404);
         throw new Error("Application not found!!!!");
