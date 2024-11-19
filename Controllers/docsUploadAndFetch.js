@@ -102,7 +102,7 @@ export const getDocuments = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("Lead not found!!!");
     }
-    const docs = await Document.findOne({ pan: lead.pan });
+    const docs = await Documents.findOne({ pan: lead.pan });
 
     const result = await getDocs(docs, docType, docId);
 
