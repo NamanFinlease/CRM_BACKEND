@@ -127,7 +127,7 @@ export const getSanction = asyncHandler(async (req, res) => {
     const sanction = await Sanction.findOne({ _id: id }).populate({
         path: "application",
         populate: [
-            { path: "lead" },
+            { path: "lead", populate: { path: "documents" } },
             { path: "recommendedBy", select: "fName mName lName" },
         ],
     });
