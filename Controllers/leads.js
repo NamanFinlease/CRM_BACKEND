@@ -36,23 +36,21 @@ export const createLead = asyncHandler(async (req, res) => {
         source,
     } = req.body;
 
+    const name = fName.split(" ");
+
     const docs = await Documents.create({
         pan: pan,
     });
 
     const newLead = await Lead.create({
-        fName,
-        mName: mName
-            ? mName
-            : fName && fName.split(" ").length === 2
-            ? fName.split(" ")[1]
-            : "",
+        fName: name[0],
+        mName: mName ? mName : name.length === 2 ? name[1] : "",
         lName: lName ?? "",
         gender,
         dob: new Date(dob),
         aadhaar,
         pan,
-        document: docs._id,
+        documents: docs._id.toString(),
         mobile: String(mobile),
         alternateMobile: alternateMobile ? String(alternateMobile) : "",
         personalEmail,
