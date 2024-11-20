@@ -5,6 +5,7 @@ import { dateFormatter } from "../utils/dateFormatter.js";
 import Disbursal from "../models/Disbursal.js";
 import { generateSanctionLetter } from "../utils/sendsanction.js";
 import { getSanctionData } from "../utils/sanctionData.js";
+import mongoose from "mongoose";
 import { postLogs } from "./logs.js";
 
 import Lead from "../models/Leads.js";
@@ -159,109 +160,162 @@ export const sanctionPreview = asyncHandler(async (req, res) => {
 // @access Private
 export const sanctionApprove = asyncHandler(async (req, res) => {
     if (req.activeRole === "sanctionHead") {
-        const { id } = req.params;
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        const { sanction, camDetails, response } = await getSanctionData(id);
+        try {
+            const { id } = req.params;
 
-        const lead = await Lead.findById({ _id: sanction.application.lead });
+            const { sanction, camDetails, response } = await getSanctionData(
+                id
+            );
 
-        const pipeline = [
-            {
-                $match: {
-                    // Match the parent document where this pan exists
-                    pan: sanction.application.applicant.personalDetails.pan,
-                },
-            },
-            {
-                $project: {
-                    pan: 1,
-                    data: {
-                        $arrayElemAt: [
-                            {
-                                $filter: {
-                                    input: "$data",
-                                    as: "item", // Alias for each element in the array
-                                    cond: {
-                                        $and: [
-                                            { $eq: ["$$item.isActive", true] }, // Condition for isActive
-                                        ],
-                                    },
-                                },
-                            },
-                        ],
+            const lead = await Lead.findById({
+                _id: sanction.application.lead,
+            });
+
+            const pipeline = [
+                {
+                    $match: {
+                        // Match the parent document where this pan exists
+                        pan: sanction.application.applicant.personalDetails.pan,
                     },
                 },
-            },
-        ];
-        const activeLead = await Closed.aggregate(pipeline);
+                {
+                    $project: {
+                        pan: 1,
+                        data: {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: "$data",
+                                        as: "item", // Alias for each element in the array
+                                        cond: {
+                                            $and: [
+                                                {
+                                                    $eq: [
+                                                        "$$item.isActive",
+                                                        true,
+                                                    ],
+                                                }, // Condition for isActive
+                                            ],
+                                        },
+                                    },
+                                },
+                                0,
+                            ],
+                        },
+                    },
+                },
+            ];
+            const activeLead = await Closed.aggregate(pipeline);
 
-        if (activeLead.length > 0) {
-            res.status(403);
-            throw new Error("This PAN already has an active lead!!");
-        }
+            if (activeLead.length > 0) {
+                res.status(403);
+                throw new Error("This PAN already has an active lead!!");
+            }
 
-        // Call the generateSanctionLetter utility function
-        const emailResponse = await generateSanctionLetter(
-            `SANCTION LETTER - ${response.fullname}`,
-            dateFormatter(response.sanctionDate),
-            response.title,
-            response.fullname,
-            response.mobile,
-            response.residenceAddress,
-            response.stateCountry,
-            camDetails,
-            lead,
-            `${sanction.application.applicant.personalDetails.personalEmail}`
-        );
+            // Generate the loanNo
+            const lastSanctioned = await Sanction.aggregate([
+                { $match: { loanNo: { $exists: true, $ne: null } } },
+                {
+                    $project: {
+                        numericLoanNo: {
+                            $toInt: { $substr: ["$loanNo", 6, -1] }, // Extract numeric part
+                        },
+                    },
+                },
+                { $sort: { numericLoanNo: -1 } },
+                { $limit: 1 },
+            ]);
 
-        // Return a unsuccessful response
-        if (!emailResponse.success) {
-            return res.json({ success: false });
-        }
+            const lastSequence =
+                lastSanctioned.length > 0 ? lastSanctioned[0].numericLoanNo : 0;
+            const newSequence = lastSequence + 1;
 
-        sanction.sanctionDate = response.sanctionDate;
-        sanction.isApproved = true;
-        sanction.approvedBy = req.employee._id.toString();
-        await sanction.save();
+            const newLoanNo = `NMFSPE${String(newSequence).padStart(11, "0")}`;
 
-        const newDisbursal = new Disbursal({
-            sanction: sanction._id,
-            loanNo: sanction.loanNo,
-        });
-
-        const disbursalRes = await newDisbursal.save();
-
-        if (!disbursalRes) {
-            res.status(400);
-            throw new Error("Could not approve this application!!");
-        }
-
-        const newActiveLead = await createActiveLead(
-            sanction.application.applicant.personalDetails.pan,
-            sanction.loanNo,
-            disbursalRes._id
-        );
-        if (!newActiveLead.success) {
-            res.status(400);
-            throw new Error(
-                "Could not create an active lead for this record!!"
+            // Call the generateSanctionLetter utility function
+            const emailResponse = await generateSanctionLetter(
+                `SANCTION LETTER - ${response.fullname}`,
+                dateFormatter(response.sanctionDate),
+                response.title,
+                response.fullname,
+                response.mobile,
+                response.residenceAddress,
+                response.stateCountry,
+                camDetails,
+                lead,
+                `${sanction.application.applicant.personalDetails.personalEmail}`
             );
+
+            // Return a unsuccessful response
+            if (!emailResponse.success) {
+                return res.json({ success: false });
+            }
+
+            const update = await Sanction.findByIdAndUpdate(
+                id,
+                {
+                    loanNo: newLoanNo,
+                    sanctionDate: response.sanctionDate,
+                    isApproved: true,
+                    approvedBy: req.employee._id.toString(),
+                },
+                { new: true }
+            );
+
+            if (!update) {
+                res.status(400);
+                throw new Error("There was some problem with update!!");
+            }
+
+            const newDisbursal = new Disbursal({
+                sanction: sanction._id,
+                loanNo: update.loanNo,
+            });
+
+            const disbursalRes = await newDisbursal.save();
+
+            if (!disbursalRes) {
+                res.status(400);
+                throw new Error("Could not approve this application!!");
+            }
+
+            const newActiveLead = await createActiveLead(
+                sanction.application.applicant.personalDetails.pan,
+                update.loanNo,
+                disbursalRes._id
+            );
+            if (!newActiveLead.success) {
+                res.status(400);
+                throw new Error(
+                    "Could not create an active lead for this record!!"
+                );
+            }
+
+            const logs = await postLogs(
+                sanction.application.lead,
+                "SANCTION APPROVED. SEND TO DISBURSAL",
+                `${sanction.application.applicant.personalDetails.fName}${
+                    sanction.application.applicant.personalDetails.mName &&
+                    ` ${sanction.application.applicant.personalDetails.mName}`
+                }${
+                    sanction.application.applicant.personalDetails.lName &&
+                    ` ${sanction.application.applicant.personalDetails.lName}`
+                }`,
+                `Sanction approved by ${req.employee.fName} ${req.employee.lName}`
+            );
+            await session.commitTransaction();
+            session.endSession();
+
+            return res.json({ success: true, logs });
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            res.status(500);
+            throw new Error(error.message);
         }
-
-        const logs = await postLogs(
-            sanction.application.lead,
-            "SANCTION APPROVED. SEND TO DISBURSAL",
-            `${sanction.application.applicant.personalDetails.fName}${
-                sanction.application.applicant.personalDetails.mName &&
-                ` ${sanction.application.applicant.personalDetails.mName}`
-            }${
-                sanction.application.applicant.personalDetails.lName &&
-                ` ${sanction.application.applicant.personalDetails.lName}`
-            }`,
-            `Sanction approved by ${req.employee.fName} ${req.employee.lName}`
-        );
-
-        return res.json({ success: true, logs });
     } else {
         res.status(401);
         throw new Error("You are not authorized!!");

@@ -63,7 +63,7 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                 populate: {
                     path: "application", // Inside 'sanction', populate the 'application' field
                     populate: [
-                        { path: "lead" },
+                        { path: "lead", populate: { path: "documents" } },
                         { path: "creditManagerId" },
                         { path: "recommendBy" },
                     ],

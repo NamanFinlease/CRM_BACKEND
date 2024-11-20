@@ -186,6 +186,7 @@ export const allocatedLeads = asyncHandler(async (req, res) => {
         .skip(skip)
         .limit(limit)
         .populate("screenerId")
+        .populate("documents")
         .sort({ updatedAt: -1 });
 
     const totalLeads = await Lead.countDocuments(query);
@@ -255,10 +256,12 @@ export const recommendLead = asyncHandler(async (req, res) => {
     const { id } = req.params;
     if (req.activeRole === "screener") {
         // Find the lead by its ID
-        const lead = await Lead.findById(id).populate({
-            path: "screenerId",
-            select: "fName mName lName",
-        });
+        const lead = await Lead.findById(id)
+            .populate({
+                path: "screenerId",
+                select: "fName mName lName",
+            })
+            .populate("documents");
 
         if (!lead) {
             throw new Error("Lead not found"); // This error will be caught by the error handler

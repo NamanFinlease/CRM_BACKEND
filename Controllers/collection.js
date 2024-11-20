@@ -95,7 +95,7 @@ export const activeLeads = asyncHandler(async (req, res) => {
                 populate: {
                     path: "application", // Inside 'sanction', populate the 'application' field
                     populate: [
-                        { path: "lead" },
+                        { path: "lead", populate: { path: "documents" } },
                         { path: "creditManagerId" },
                         { path: "recommendedBy" },
                     ],
@@ -157,7 +157,7 @@ export const getActiveLead = asyncHandler(async (req, res) => {
             populate: {
                 path: "application", // Inside 'sanction', populate the 'application' field
                 populate: [
-                    { path: "lead" },
+                    { path: "lead", populate: { path: "documents" } },
                     { path: "creditManagerId" },
                     { path: "recommendBy" },
                 ],
@@ -230,7 +230,7 @@ export const updateActiveLead = asyncHandler(async (req, res) => {
                 populate: {
                     path: "application", // Inside 'sanction', populate the 'application' field
                     populate: [
-                        { path: "lead" },
+                        { path: "lead", populate: { path: "documents" } },
                         { path: "creditManagerId" },
                         { path: "recommendBy" },
                     ],
@@ -319,7 +319,7 @@ export const closedLeads = asyncHandler(async (req, res) => {
             populate: {
                 path: "application", // Inside 'sanction', populate the 'application' field
                 populate: [
-                    { path: "lead" },
+                    { path: "lead", populate: { path: "documents" } },
                     { path: "creditManagerId" },
                     { path: "recommendBy" },
                 ],

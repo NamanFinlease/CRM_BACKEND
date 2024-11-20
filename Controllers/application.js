@@ -80,7 +80,7 @@ export const allocateApplication = asyncHandler(async (req, res) => {
         id,
         { creditManagerId },
         { new: true }
-    ).populate("lead");
+    ).populate({ path: "lead", populate: { path: "documents" } });
 
     if (!application) {
         throw new Error("Application not found"); // This error will be caught by the error handler
@@ -130,7 +130,7 @@ export const allocatedApplications = asyncHandler(async (req, res) => {
     const applications = await Application.find(query)
         .skip(skip)
         .limit(limit)
-        .populate("lead")
+        .populate({ path: "lead", populate: { path: "documents" } })
         .populate("applicant")
         .populate("creditManagerId")
         .sort({ updatedAt: -1 });
@@ -189,7 +189,7 @@ export const updateCamDetails = asyncHandler(async (req, res) => {
     const { details } = req.body;
 
     const application = await Application.findById(id)
-        .populate("lead")
+        .populate({ path: "lead", populate: { path: "documents" } })
         .populate("creditManagerId");
     if (!application) {
         res.status(404);
@@ -239,7 +239,7 @@ export const recommendedApplication = asyncHandler(async (req, res) => {
 
         // Find the application by its ID
         const application = await Application.findById(id)
-            .populate("lead")
+            .populate({ path: "lead", populate: { path: "documents" } })
             .populate("creditManagerId");
 
         if (!application) {

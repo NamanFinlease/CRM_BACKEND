@@ -59,12 +59,12 @@ export const getDisbursal = asyncHandler(async (req, res) => {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
                 populate: [
                     { path: "recommendedBy", select: "fName mName lName" }, // Populate 'approvedBy' inside 'sanction'
+                    { path: "approveddBy", select: "fName mName lName" },
                     {
                         path: "application", // Populate 'application' inside 'sanction'
                         populate: [
-                            { path: "lead" }, // Populate 'lead' inside 'application'
+                            { path: "lead", populate: { path: "documents" } }, // Populate 'lead' inside 'application'
                             { path: "creditManagerId" }, // Populate 'creditManagerId' inside 'application'
-                            { path: "recommendedBy" }, // Populate 'recommendedBy' inside 'application'
                         ],
                     },
                 ],
@@ -114,6 +114,9 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
             path: "application", // Inside 'sanction', populate the 'application' field
             populate: {
                 path: "lead", // Inside 'application', populate the 'lead' field
+                populate: {
+                    path: "documents",
+                },
             },
         },
     });
@@ -174,6 +177,9 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
                 path: "application", // Inside 'sanction', populate the 'application' field
                 populate: {
                     path: "lead", // Inside 'application', populate the 'lead' field
+                    populate: {
+                        path: "documents",
+                    },
                 },
             },
         })
@@ -209,6 +215,9 @@ export const recommendDisbursal = asyncHandler(async (req, res) => {
                     path: "application", // Inside 'sanction', populate the 'application' field
                     populate: {
                         path: "lead", // Inside 'application', populate the 'lead' field
+                        populate: {
+                            path: "documents",
+                        },
                     },
                 },
             })
@@ -264,6 +273,9 @@ export const disbursalPending = asyncHandler(async (req, res) => {
                     path: "application", // Inside 'sanction', populate the 'application' field
                     populate: {
                         path: "lead", // Inside 'application', populate the 'lead' field
+                        populate: {
+                            path: "documents",
+                        },
                     },
                 },
             })
@@ -350,7 +362,10 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
             { new: true }
         ).populate({
             path: "sanction",
-            populate: { path: "application", populate: { path: "lead" } },
+            populate: {
+                path: "application",
+                populate: { path: "lead", populate: { path: "documents" } },
+            },
         });
 
         await Closed.updateOne(
@@ -399,7 +414,10 @@ export const disbursed = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate({
                 path: "sanction",
-                populate: { path: "application", populate: { path: "lead" } },
+                populate: {
+                    path: "application",
+                    populate: { path: "lead", populate: { path: "documents" } },
+                },
             })
             .populate("disbursedBy");
 
