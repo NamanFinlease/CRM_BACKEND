@@ -1,7 +1,8 @@
+import { populate } from "dotenv";
 import asyncHandler from "../middleware/asyncHandler.js";
 import Admin from "../models/Admin.js";
-import Application from "../models/Applications.js";
 import CamDetails from "../models/CAM.js";
+import Closed from "../models/Closed.js";
 import Disbursal from "../models/Disbursal.js";
 import { postLogs } from "./logs.js";
 
@@ -298,12 +299,12 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
             remarks,
         } = req.body;
 
-        const disbursalData = await Disbursal.findById(id).populate(
-            "application",
-            "lead"
-        );
+        const disbursalData = await Disbursal.findById(id).populate({
+            path: "sanction",
+            populate: { path: "application" },
+        });
         const cam = await CamDetails.findOne({
-            leadId: disbursalData?.application?.lead,
+            leadId: disbursalData?.sanction?.application?.lead,
         });
         // if()
         let currentDisbursalDate = new Date(disbursalDate);
@@ -348,11 +349,21 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
             },
             { new: true }
         ).populate({
-            path: "application",
-            populate: {
-                path: "lead",
-            },
+            path: "sanction",
+            populate: { path: "application", populate: { path: "lead" } },
         });
+
+        await Closed.updateOne(
+            { "data.disbursal": id },
+            {
+                $set: {
+                    "data.$[elem].isDisbursed": true,
+                },
+            },
+            {
+                arrayFilters: [{ "elem.disbursal": id }],
+            }
+        );
 
         const logs = await postLogs(
             disbursal.application.lead._id,
@@ -387,10 +398,8 @@ export const disbursed = asyncHandler(async (req, res) => {
             .skip(skip)
             .limit(limit)
             .populate({
-                path: "application",
-                populate: {
-                    path: "lead",
-                },
+                path: "sanction",
+                populate: { path: "application", populate: { path: "lead" } },
             })
             .populate("disbursedBy");
 

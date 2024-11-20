@@ -72,9 +72,16 @@ export const activeLeads = asyncHandler(async (req, res) => {
                                     },
                                 },
                             },
+                            0,
                         ],
                     },
                 },
+            },
+            {
+                $skip: skip,
+            },
+            {
+                $limit: limit,
             },
         ];
 
@@ -90,7 +97,7 @@ export const activeLeads = asyncHandler(async (req, res) => {
                     populate: [
                         { path: "lead" },
                         { path: "creditManagerId" },
-                        { path: "recommendBy" },
+                        { path: "recommendedBy" },
                     ],
                 },
             },
