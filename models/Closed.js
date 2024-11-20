@@ -14,6 +14,7 @@ const closedSchema = new mongoose.Schema(
                     ref: "Disbursal",
                 },
                 loanNo: { type: String, required: true },
+                isDisbursed: { type: Boolean, default: false },
                 closingDate: { type: Date },
                 closingAmount: { type: Number, default: 0 },
                 discount: { type: Number, default: 0 },

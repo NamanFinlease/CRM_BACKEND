@@ -362,18 +362,41 @@ const updateLoanNumber = async () => {
         }
         console.log("Copied loanNo from Disbursal to Sanction");
 
-        // Step 2: Find the next available loanNo
-        const allSanctions = await Sanction.find({
-            loanNo: { $exists: true },
-        }).sort({ loanNo: 1 });
-        const existingLoanNumbers = allSanctions.map((sanction) =>
-            parseInt(sanction.loanNo.slice(7))
-        );
-        console.log("Existing loan numbers:", existingLoanNumbers);
-        let nextLoanNo = 1;
-        while (existingLoanNumbers.includes(nextLoanNo)) {
-            nextLoanNo++;
-        }
+        const lastSanctioned = await mongoose.model("Sanction").aggregate([
+            {
+                $match: { loanNo: { $exists: true, $ne: null } },
+            },
+            {
+                $project: {
+                    numericLoanNo: {
+                        $toInt: { $substr: ["$loanNo", 6, -1] }, // Extract numeric part
+                    },
+                },
+            },
+            {
+                $sort: { numericLoanNo: -1 }, // Sort in descending order
+            },
+            { $limit: 1 }, // Get the highest number
+        ]);
+
+        // // Step 2: Find the next available loanNo
+        // const allSanctions = await Sanction.find({
+        //     loanNo: { $exists: true },
+        // }).sort({ loanNo: 1 });
+        // const existingLoanNumbers = allSanctions.map((sanction) =>
+        //     parseInt(sanction.loanNo.slice(7))
+        // );
+        // console.log("Existing loan numbers:", existingLoanNumbers);
+        // let nextLoanNo = 1;
+        // while (existingLoanNumbers.includes(nextLoanNo)) {
+        //     nextLoanNo++;
+        // }
+
+        const lastSequence =
+            lastSanctioned.length > 0 ? lastSanctioned[0].numericLoanNo : 0;
+        const newSequence = lastSequence + 1;
+
+        const nextLoanNo = `NMFSPE${String(newSequence).padStart(11, 0)}`;
 
         // Step 3: Update loanNo for approved Sanction records without loanNo
         const sanctionsToUpdate = await Sanction.find({
@@ -386,19 +409,19 @@ const updateLoanNumber = async () => {
 
         for (const sanction of sanctionsToUpdate) {
             // Generate the next loanNo
-            const newLoanNo = `NMFSPE${String(nextLoanNo).padStart(11, 0)}`;
+            const nextLoanNo = `NMFSPE${String(newSequence).padStart(11, 0)}`;
 
             // Update the sanction with the new loanNo
             await Sanction.updateOne(
                 { _id: sanction._id },
-                { $set: { loanNo: newLoanNo } }
+                { $set: { loanNo: nextLoanNo } }
             );
 
             // Increment the nextLoanNo and ensure no duplicates
-            nextLoanNo++;
-            while (existingLoanNumbers.includes(nextLoanNo)) {
-                nextLoanNo++;
-            }
+            // nextLoanNo++;
+            // while (existingLoanNumbers.includes(nextLoanNo)) {
+            //     nextLoanNo++;
+            // }
         }
 
         console.log("Updated loanNo for all approved sanctions without loanNo");
@@ -463,8 +486,8 @@ const sanctionActiveLeadsMigration = async () => {
 // Main Function to Connect and Run
 async function main() {
     await connectToDatabase();
-    await migrateDocuments();
-    // await updateLoanNumber();
+    // await migrateDocuments();
+    await updateLoanNumber();
     // await sanctionActiveLeadsMigration();
     // await updateLeadsWithDocumentIds();
     // await matchPANFromExcel();
