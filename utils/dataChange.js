@@ -271,15 +271,31 @@ async function migrateDocuments() {
     try {
         // Step 1
         console.log("Starting document migration...");
-        const leads = await Lead.find({ isRejected: false });
+        const leads = await Lead.find({
+            isRejected: false,
+            // $or: [
+            //     { documents: { $exists: false } }, // Field doesn't exist
+            //     { documents: null }, // Field exists but is null
+            // ],
+        });
 
         for (const lead of leads) {
+            console.log(lead);
             const { pan, document: leadDocuments } = lead;
 
             // Skip leads without documents
             if (!leadDocuments) {
                 console.log(`Skipping lead ${lead._id} - No documents.`);
-                continue;
+                const existingDoc = await Documents.findOne({ pan: pan });
+                if (existingDoc) {
+                    lead.documents = existingDoc._id;
+                    await lead.save();
+                } else {
+                    const docs = await Documents.create({ pan: pan });
+                    lead.documents = docs._id;
+                    await lead.save();
+                }
+                console.log(`Processed lead ${lead._id} with PAN ${pan}`);
             }
 
             let existingDoc = await Documents.findOne({ pan });
@@ -335,7 +351,7 @@ async function migrateDocuments() {
             // Update the lead's document field to reference the new Document ObjectId
             lead.documents = existingDoc._id;
             // Remove the old document field (the object) from the lead
-            lead.document = undefined;
+            // lead.document = undefined;
             await lead.save();
 
             console.log(`Processed lead ${lead._id} with PAN ${pan}`);
