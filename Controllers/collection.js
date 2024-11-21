@@ -55,6 +55,7 @@ export const activeLeads = asyncHandler(async (req, res) => {
                     // Match the parent document where the data array contains elements
                     // that have isActive: true
                     "data.isActive": true,
+                    "data.isDisbursed": true,
                 },
             },
             {
@@ -69,6 +70,12 @@ export const activeLeads = asyncHandler(async (req, res) => {
                                     cond: {
                                         $and: [
                                             { $eq: ["$$item.isActive", true] }, // Condition for isActive
+                                            {
+                                                $eq: [
+                                                    "$$item.isDisbursed",
+                                                    true,
+                                                ],
+                                            },
                                         ],
                                     },
                                 },

@@ -1,4 +1,5 @@
 import asyncHandler from "../middleware/asyncHandler.js";
+import Closed from "../models/Closed.js";
 import Lead from "../models/Leads.js";
 import Application from "../models/Applications.js";
 import Employee from "../models/Employees.js";
@@ -133,6 +134,21 @@ export const rejected = asyncHandler(async (req, res) => {
         if (!disbursal) {
             throw new Error("Disbursal not found!!");
         }
+
+        const activeRecord = await Closed.updateOne(
+            { "data.loanNo": disbursal.loanNo }, // Find the document where the data array contains an object with the matching loanNo
+            {
+                $set: {
+                    "data.$.isActive": false, // Update the isActive field of the matched object
+                },
+            }
+        );
+
+        if (!activeRecord) {
+            res.status(500);
+            throw new Error(`${disbursal.loanNo} couldn't be closed!!`);
+        }
+
         logs = await postLogs(
             disbursal.sanction.application.lead._id,
             "DISBURSAL REJECTED",

@@ -25,6 +25,7 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
         };
 
         const disbursals = await Disbursal.find(query)
+            .sort({ updatedAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate({
@@ -59,7 +60,7 @@ export const getDisbursal = asyncHandler(async (req, res) => {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
                 populate: [
                     { path: "recommendedBy", select: "fName mName lName" }, // Populate 'approvedBy' inside 'sanction'
-                    { path: "approveddBy", select: "fName mName lName" },
+                    { path: "approvedBy", select: "fName mName lName" },
                     {
                         path: "application", // Populate 'application' inside 'sanction'
                         populate: [
