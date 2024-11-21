@@ -1,4 +1,5 @@
 import asyncHandler from "../middleware/asyncHandler.js";
+import CamDetails from "../models/CAM.js";
 import Closed from "../models/Closed.js";
 import Disbursal from "../models/Disbursal.js";
 import { postLogs } from "./logs.js";
@@ -122,24 +123,29 @@ export const activeLeads = asyncHandler(async (req, res) => {
 export const getActiveLead = asyncHandler(async (req, res) => {
     const { loanNo } = req.params;
 
-    const pipeline = [
+    // const activeRecord = (await Closed.aggregate(pipeline))[0];
+    const activeRecord = await Closed.findOne(
+        { "data.loanNo": loanNo },
         {
-            $match: { "data.loanNo": loanNo }, // Match documents where the data array contains the loanNo
-        },
-        {
-            $project: {
-                data: {
-                    $filter: {
-                        input: "$data",
-                        as: "item", // Alias for each element in the array
-                        cond: { $eq: ["$$item.loanNo", loanNo] }, // Condition to match
-                    },
-                },
+            pan: 1,
+            data: {
+                $elemMatch: { loanNo: loanNo }, // Match only the specific loanNo
+            },
+        }
+    ).populate({
+        path: "data.disbursal",
+        populate: {
+            path: "sanction", // Populating the 'sanction' field in Disbursal
+            populate: {
+                path: "application", // Inside 'sanction', populate the 'application' field
+                populate: [
+                    { path: "lead", populate: { path: "documents" } },
+                    { path: "creditManagerId" },
+                    { path: "recommendedBy" },
+                ],
             },
         },
-    ];
-
-    const activeRecord = (await Closed.aggregate(pipeline))[0];
+    });
 
     if (!activeRecord) {
         res.status(404);
@@ -149,38 +155,14 @@ export const getActiveLead = asyncHandler(async (req, res) => {
         });
     }
 
-    // Populate the filtered data
-    const populatedRecord = await Closed.populate(activeRecord, {
-        path: "data.disbursal",
-        populate: {
-            path: "sanction", // Populating the 'sanction' field in Disbursal
-            populate: {
-                path: "application", // Inside 'sanction', populate the 'application' field
-                populate: [
-                    { path: "lead", populate: { path: "documents" } },
-                    { path: "creditManagerId" },
-                    { path: "recommendBy" },
-                ],
-            },
-        },
-    });
-    if (!populatedRecord) {
-        res.status(404);
-        throw new Error({
-            success: false,
-            message: "Loan number not found.",
-        });
-    }
-
-    // Convert activeLead to a plain object to make it mutable
-    let activeLeadObj = populatedRecord.toObject();
-
     // Fetch the CAM data and add to disbursalObj
     const cam = await CamDetails.findOne({
-        leadId: populatedRecord?.data?.disbursal?.sanction?.application?.lead
+        leadId: activeRecord?.data?.[0]?.disbursal?.sanction?.application?.lead
             ._id,
     });
-    activeLeadObj.data.disbursal.sanction.application.cam = cam
+
+    const activeLeadObj = activeRecord.toObject();
+    activeLeadObj.data[0].disbursal.sanction.application.cam = cam
         ? { ...cam.toObject() }
         : null;
 
