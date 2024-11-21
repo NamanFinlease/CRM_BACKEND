@@ -16,6 +16,7 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                     // Match the parent document where the data array contains elements
                     // that have isActive: true
                     "data.isActive": true,
+                    "data.isDisbursed": true,
                     $or: [
                         { "data.closingDate": { $exists: true, $ne: null } },
                         { "data.closingAmount": { $exists: true, $ne: 0 } },
@@ -46,11 +47,18 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                             cond: {
                                 $and: [
                                     { $eq: ["$$item.isActive", true] }, // Condition for isActive
+                                    { $eq: ["$$item.isDisbursed", true] },
                                 ],
                             },
                         },
                     },
                 },
+            },
+            {
+                $skip: skip,
+            },
+            {
+                $limit: limit,
             },
         ];
 
@@ -141,7 +149,7 @@ export const verifyActiveLead = asyncHandler(async (req, res) => {
                 populate: {
                     path: "application", // Inside 'sanction', populate the 'application' field
                     populate: [
-                        { path: "lead" },
+                        { path: "lead", populate: { path: "documents" } },
                         { path: "creditManagerId" },
                         { path: "recommendBy" },
                     ],
@@ -193,6 +201,60 @@ export const verifyActiveLead = asyncHandler(async (req, res) => {
         return res.json({
             success: true,
             message: `Record updated successfully. Status ${status} is now verified.`,
+        });
+    }
+});
+
+// @desc Reject the payment verification if the payment is not received and remove the requested status
+// @route PATCH /api/accounts/active/verify/reject/:loanNo
+// @access Private
+export const rejectPaymentVerification = asyncHandler(async (req, res) => {
+    if (req.activeRole === "accountExecutive") {
+        const { loanNo } = req.params;
+
+        // Find the document containing the specific loanNo in the `data` array
+        const activeRecord = await Closed.findOne(
+            { "data.loanNo": loanNo },
+            {
+                pan: 1, // Include only necessary fields
+                data: { $elemMatch: { loanNo: loanNo } }, // Fetch only the matched data entry
+            }
+        ).populate({
+            path: "data.disbursal",
+            populate: {
+                path: "sanction", // Populating the 'sanction' field in Disbursal
+                populate: {
+                    path: "application", // Inside 'sanction', populate the 'application' field
+                    populate: [
+                        { path: "lead", populate: { path: "documents" } },
+                        { path: "creditManagerId" },
+                        { path: "recommendBy" },
+                    ],
+                },
+            },
+        });
+
+        if (!activeRecord || !activeRecord.data?.length) {
+            res.status(404);
+            throw new Error({
+                success: false,
+                message: "Loan number not found.",
+            });
+        }
+
+        // Access the loan entry from the data array
+        const loanEntry = populatedRecord.data[0];
+
+        // Remove the `requestedStatus` field
+        await Closed.updateOne(
+            { "data.loanNo": loanNo },
+            { $unset: { "data.$.requestedStatus": "" } } // Use positional operator to unset the field
+        );
+
+        // Send a success response
+        return res.json({
+            success: true,
+            message: `Record updated successfully. Requested status has been removed.`,
         });
     }
 });
