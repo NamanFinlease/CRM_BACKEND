@@ -458,40 +458,61 @@ const sanctionActiveLeadsMigration = async () => {
         });
 
         for (const sanction of sanctions) {
+            // Find the corresponding disbursal record
             const disbursal = await Disbursal.findOne({
                 loanNo: sanction.loanNo,
             });
 
             if (disbursal) {
-                const exisitingActiveLead = await Closed.findOne({
+                // Find an existing record in the Closed collection using the pan
+                let existingActiveLead = await Closed.findOne({
                     pan: sanction.application.lead.pan,
                 });
-                if (!exisitingActiveLead) {
+
+                // Data object to be added to the Closed collection
+                const dataToAdd = {
+                    disbursal: disbursal._id,
+                    loanNo: sanction.loanNo,
+                };
+
+                // Add isDisbursed field if it is true in the disbursal record
+                if (disbursal.isDisbursed) {
+                    dataToAdd.isDisbursed = true;
+                }
+
+                if (existingActiveLead) {
+                    // Check if the loanNo already exists in the data array
+                    const existingDataIndex = existingActiveLead.data.findIndex(
+                        (item) => item.loanNo === sanction.loanNo
+                    );
+                    if (existingDataIndex > -1) {
+                        // Update the existing data object
+                        existingActiveLead.data[existingDataIndex] = {
+                            ...existingActiveLead.data[existingDataIndex],
+                            ...dataToAdd, // Update with new data
+                        };
+                    } else {
+                        // Add a new object to the data array
+                        existingActiveLead.data.push(dataToAdd);
+                    }
+                    await existingActiveLead.save();
+                } else {
+                    // Create a new record in the Closed collection
                     const newActiveLead = await Closed.create({
                         pan: sanction.application.lead.pan,
-                        data: [
-                            {
-                                disbursal: disbursal._id,
-                                loanNo: sanction.loanNo,
-                            },
-                        ],
+                        data: [dataToAdd],
                     });
 
                     if (!newActiveLead) {
                         console.log(
-                            "Some error occured while creating an active lead."
+                            "Some error occurred while creating an active lead."
                         );
                     }
-                } else {
-                    // If the active lead exists, directly add the new loanNo to the data array
-                    exisitingActiveLead.data.push({
-                        disbursal: disbursal._id,
-                        loanNo: sanction.loanNo,
-                    });
-                    await exisitingActiveLead.save();
                 }
             } else {
-                console.log("No Disbursal found");
+                console.log(
+                    `No Disbursal found for loanNo: ${sanction.loanNo}`
+                );
             }
         }
     } catch (error) {
@@ -503,8 +524,8 @@ const sanctionActiveLeadsMigration = async () => {
 async function main() {
     await connectToDatabase();
     // await migrateDocuments();
-    await updateLoanNumber();
-    // await sanctionActiveLeadsMigration();
+    // await updateLoanNumber();
+    await sanctionActiveLeadsMigration();
     // await updateLeadsWithDocumentIds();
     // await matchPANFromExcel();
     // addRecommendedByToSanctions();
