@@ -68,14 +68,17 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
             path: "data.disbursal",
             populate: {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: {
-                    path: "application", // Inside 'sanction', populate the 'application' field
-                    populate: [
-                        { path: "lead", populate: { path: "documents" } },
-                        { path: "creditManagerId" },
-                        { path: "recommendBy" },
-                    ],
-                },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
+                    },
+                ],
             },
         });
 
@@ -146,14 +149,17 @@ export const verifyActiveLead = asyncHandler(async (req, res) => {
             path: "data.disbursal",
             populate: {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: {
-                    path: "application", // Inside 'sanction', populate the 'application' field
-                    populate: [
-                        { path: "lead", populate: { path: "documents" } },
-                        { path: "creditManagerId" },
-                        { path: "recommendBy" },
-                    ],
-                },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
+                    },
+                ],
             },
         });
 
@@ -223,14 +229,17 @@ export const rejectPaymentVerification = asyncHandler(async (req, res) => {
             path: "data.disbursal",
             populate: {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: {
-                    path: "application", // Inside 'sanction', populate the 'application' field
-                    populate: [
-                        { path: "lead", populate: { path: "documents" } },
-                        { path: "creditManagerId" },
-                        { path: "recommendBy" },
-                    ],
-                },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
+                    },
+                ],
             },
         });
 

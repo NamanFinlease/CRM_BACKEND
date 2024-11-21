@@ -111,15 +111,16 @@ export const allocateDisbursal = asyncHandler(async (req, res) => {
         { new: true }
     ).populate({
         path: "sanction", // Populating the 'sanction' field in Disbursal
-        populate: {
-            path: "application", // Inside 'sanction', populate the 'application' field
-            populate: {
-                path: "lead", // Inside 'application', populate the 'lead' field
-                populate: {
-                    path: "documents",
-                },
+        populate: [
+            { path: "approvedBy" },
+            {
+                path: "application",
+                populate: [
+                    { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                    { path: "recommendedBy" },
+                ],
             },
-        },
+        ],
     });
 
     if (!disbursal) {
@@ -174,15 +175,17 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
         .limit(limit)
         .populate({
             path: "sanction", // Populating the 'sanction' field in Disbursal
-            populate: {
-                path: "application", // Inside 'sanction', populate the 'application' field
-                populate: {
-                    path: "lead", // Inside 'application', populate the 'lead' field
-                    populate: {
-                        path: "documents",
-                    },
+            populate: [
+                { path: "approvedBy" },
+                {
+                    path: "application",
+                    populate: [
+                        { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                        { path: "creditManagerId" }, // Populate creditManagerId
+                        { path: "recommendedBy" },
+                    ],
                 },
-            },
+            ],
         })
         .populate({
             path: "disbursalManagerId",
@@ -212,15 +215,17 @@ export const recommendDisbursal = asyncHandler(async (req, res) => {
         const disbursal = await Disbursal.findById(id)
             .populate({
                 path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: {
-                    path: "application", // Inside 'sanction', populate the 'application' field
-                    populate: {
-                        path: "lead", // Inside 'application', populate the 'lead' field
-                        populate: {
-                            path: "documents",
-                        },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
                     },
-                },
+                ],
             })
             .populate({
                 path: "disbursalManagerId",
@@ -270,15 +275,17 @@ export const disbursalPending = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate({
                 path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: {
-                    path: "application", // Inside 'sanction', populate the 'application' field
-                    populate: {
-                        path: "lead", // Inside 'application', populate the 'lead' field
-                        populate: {
-                            path: "documents",
-                        },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
                     },
-                },
+                ],
             })
             .populate("disbursalManagerId");
 
@@ -337,7 +344,6 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
                     Number(tenure) *
                     Number(cam.details.roi)) /
                     100;
-            console.log("cam update", repaymentAmount);
             const update = await CamDetails.findByIdAndUpdate(
                 cam._id,
                 {
@@ -363,10 +369,16 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
             { new: true }
         ).populate({
             path: "sanction",
-            populate: {
-                path: "application",
-                populate: { path: "lead", populate: { path: "documents" } },
-            },
+            populate: [
+                { path: "approvedBy" },
+                {
+                    path: "application",
+                    populate: [
+                        { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                        { path: "recommendedBy" },
+                    ],
+                },
+            ],
         });
 
         await Closed.updateOne(
@@ -415,10 +427,16 @@ export const disbursed = asyncHandler(async (req, res) => {
             .limit(limit)
             .populate({
                 path: "sanction",
-                populate: {
-                    path: "application",
-                    populate: { path: "lead", populate: { path: "documents" } },
-                },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "recommendedBy" },
+                        ],
+                    },
+                ],
             })
             .populate("disbursedBy");
 

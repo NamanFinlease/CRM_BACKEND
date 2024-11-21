@@ -100,14 +100,17 @@ export const activeLeads = asyncHandler(async (req, res) => {
             path: "data.disbursal",
             populate: {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: {
-                    path: "application", // Inside 'sanction', populate the 'application' field
-                    populate: [
-                        { path: "lead", populate: { path: "documents" } },
-                        { path: "creditManagerId" },
-                        { path: "recommendedBy" },
-                    ],
-                },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
+                    },
+                ],
             },
         });
 
@@ -143,14 +146,17 @@ export const getActiveLead = asyncHandler(async (req, res) => {
         path: "data.disbursal",
         populate: {
             path: "sanction", // Populating the 'sanction' field in Disbursal
-            populate: {
-                path: "application", // Inside 'sanction', populate the 'application' field
-                populate: [
-                    { path: "lead", populate: { path: "documents" } },
-                    { path: "creditManagerId" },
-                    { path: "recommendedBy" },
-                ],
-            },
+            populate: [
+                { path: "approvedBy" },
+                {
+                    path: "application",
+                    populate: [
+                        { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                        { path: "creditManagerId" }, // Populate creditManagerId
+                        { path: "recommendedBy" },
+                    ],
+                },
+            ],
         },
     });
 
@@ -222,14 +228,17 @@ export const updateActiveLead = asyncHandler(async (req, res) => {
             path: "data.disbursal",
             populate: {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: {
-                    path: "application", // Inside 'sanction', populate the 'application' field
-                    populate: [
-                        { path: "lead", populate: { path: "documents" } },
-                        { path: "creditManagerId" },
-                        { path: "recommendBy" },
-                    ],
-                },
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
+                    },
+                ],
             },
         });
 
@@ -311,14 +320,17 @@ export const closedLeads = asyncHandler(async (req, res) => {
         path: "data.disbursal",
         populate: {
             path: "sanction", // Populating the 'sanction' field in Disbursal
-            populate: {
-                path: "application", // Inside 'sanction', populate the 'application' field
-                populate: [
-                    { path: "lead", populate: { path: "documents" } },
-                    { path: "creditManagerId" },
-                    { path: "recommendBy" },
-                ],
-            },
+            populate: [
+                { path: "approvedBy" },
+                {
+                    path: "application",
+                    populate: [
+                        { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                        { path: "creditManagerId" }, // Populate creditManagerId
+                        { path: "recommendedBy" },
+                    ],
+                },
+            ],
         },
     });
 
