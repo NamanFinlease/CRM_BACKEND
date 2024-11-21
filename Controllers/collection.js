@@ -169,11 +169,17 @@ export const getActiveLead = asyncHandler(async (req, res) => {
     });
 
     const activeLeadObj = activeRecord.toObject();
-    activeLeadObj.data[0].disbursal.sanction.application.cam = cam
+
+    // Extract the matched data object from the array
+    const matchedData = activeLeadObj.data[0]; // Since $elemMatch returns a single matching element
+    matchedData.disbursal.sanction.application.cam = cam
         ? { ...cam.toObject() }
         : null;
 
-    return res.json({ activeLead: activeLeadObj });
+    return res.json({
+        pan: activeLeadObj.pan, // Include the parent fields
+        data: matchedData, // Send the matched object as a single object
+    });
 });
 
 // @desc Update an active lead after collection/recovery
