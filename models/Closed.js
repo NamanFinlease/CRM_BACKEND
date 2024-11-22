@@ -23,6 +23,7 @@ const closedSchema = new mongoose.Schema(
                     {
                         date: { type: Date },
                         amount: { type: Number, default: 0 },
+                        utr: { type: String },
                     },
                 ],
                 requestedStatus: {
