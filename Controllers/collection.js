@@ -247,11 +247,19 @@ export const updateActiveLead = asyncHandler(async (req, res) => {
             const updateQuery = {
                 "data.loanNo": loanNo,
             };
-            const updateOperation = {
-                $set: {
+
+            let updateOperation = {};
+
+            if (updates.data.partialPaid) {
+                // If partialPaid is present in the updates, push the object into the array
+                updateOperation.$push = {
+                    "data.$.partialPaid": updates.data.partialPaid,
+                };
+            } else {
+                updateOperation.$set = {
                     "data.$": { ...populatedRecord.data[0], ...updates.data }, // Merge updates
-                },
-            };
+                };
+            }
 
             const updatedRecord = await Closed.findOneAndUpdate(
                 updateQuery,

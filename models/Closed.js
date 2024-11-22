@@ -15,8 +15,8 @@ const closedSchema = new mongoose.Schema(
                 },
                 loanNo: { type: String, required: true },
                 isDisbursed: { type: Boolean, default: false },
-                closingDate: { type: Date },
-                closingAmount: { type: Number, default: 0 },
+                date: { type: Date },
+                amount: { type: Number, default: 0 },
                 discount: { type: Number, default: 0 },
                 utr: { type: String },
                 partialPaid: [
