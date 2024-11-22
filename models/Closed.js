@@ -18,6 +18,7 @@ const closedSchema = new mongoose.Schema(
                 closingDate: { type: Date },
                 closingAmount: { type: Number, default: 0 },
                 discount: { type: Number, default: 0 },
+                utr: { type: String },
                 partialPaid: [
                     {
                         date: { type: Date },
