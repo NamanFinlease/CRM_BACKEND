@@ -18,13 +18,15 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                     "data.isActive": true,
                     "data.isDisbursed": true,
                     $or: [
-                        { "data.closingDate": { $exists: true, $ne: null } },
-                        { "data.closingAmount": { $exists: true, $ne: 0 } },
+                        { "data.date": { $exists: true, $ne: null } },
+                        { "data.amount": { $exists: true, $ne: 0 } },
+                        { "data.utr": { $exists: true, $ne: 0 } },
                         {
                             "data.partialPaid": {
                                 $elemMatch: {
                                     date: { $exists: true, $ne: null },
                                     amount: { $exists: true, $gt: 0 },
+                                    utr: { $exists: true },
                                 },
                             },
                         },
