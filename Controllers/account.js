@@ -18,6 +18,7 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                     "data.isActive": true,
                     "data.isDisbursed": true,
                     "data.isVerified": false,
+                    "data.isClosed": false,
                     $or: [
                         { "data.date": { $exists: true, $ne: null } },
                         { "data.amount": { $exists: true, $ne: 0 } },

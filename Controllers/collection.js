@@ -56,6 +56,7 @@ export const activeLeads = asyncHandler(async (req, res) => {
                     // that have isActive: true
                     "data.isActive": true,
                     "data.isDisbursed": true,
+                    "data.isClosed": false,
                 },
             },
             {
