@@ -33,7 +33,7 @@ const closedSchema = new mongoose.Schema(
                 ],
                 requestedStatus: {
                     type: String,
-                    enum: ["closed", "partialPaid", "settled", "writeOff"],
+                    enum: ["closed", "settled", "writeOff"],
                 },
                 isActive: { type: Boolean, default: true },
                 isClosed: { type: Boolean, default: false },
