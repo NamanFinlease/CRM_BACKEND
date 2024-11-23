@@ -72,7 +72,9 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
             },
         ];
 
-        const results = await Closed.aggregate(pipeline);
+        const results = await Closed.aggregate(pipeline).sort({
+            updatedAt: -1,
+        });
         // Populate the filtered data
         const leadsToVerify = await Closed.populate(results, {
             path: "data.disbursal",

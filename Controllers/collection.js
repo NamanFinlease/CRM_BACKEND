@@ -94,7 +94,9 @@ export const activeLeads = asyncHandler(async (req, res) => {
             },
         ];
 
-        const results = await Closed.aggregate(pipeline);
+        const results = await Closed.aggregate(pipeline).sort({
+            updatedAt: -1,
+        });
 
         // Populate the filtered data
         const activeLeads = await Closed.populate(results, {
@@ -299,23 +301,25 @@ export const closedLeads = asyncHandler(async (req, res) => {
     const closedLeads = await Closed.find({
         "data.isActive": false,
         "data.isClosed": true,
-    }).populate({
-        path: "data.disbursal",
-        populate: {
-            path: "sanction", // Populating the 'sanction' field in Disbursal
-            populate: [
-                { path: "approvedBy" },
-                {
-                    path: "application",
-                    populate: [
-                        { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
-                        { path: "creditManagerId" }, // Populate creditManagerId
-                        { path: "recommendedBy" },
-                    ],
-                },
-            ],
-        },
-    });
+    })
+        .populate({
+            path: "data.disbursal",
+            populate: {
+                path: "sanction", // Populating the 'sanction' field in Disbursal
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
+                    },
+                ],
+            },
+        })
+        .sort({ updatedAt: -1 });
 
     const totalClosedLeads = await Closed.countDocuments({
         "data.isActive": false,
