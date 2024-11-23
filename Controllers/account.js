@@ -57,6 +57,11 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                 },
             },
             {
+                $addFields: {
+                    data: { $arrayElemAt: ["$data", 0] }, // Extract the first matching object
+                },
+            },
+            {
                 $skip: skip,
             },
             {
