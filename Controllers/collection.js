@@ -352,7 +352,7 @@ export const closedLeads = asyncHandler(async (req, res) => {
         totalClosedLeads,
         totalPages: Math.ceil(totalClosedLeads / limit),
         currentPage: page,
-        populatedRecord,
+        closedLeads: populatedRecord,
     });
     // }
 });
