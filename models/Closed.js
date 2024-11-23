@@ -24,15 +24,19 @@ const closedSchema = new mongoose.Schema(
                         date: { type: Date },
                         amount: { type: Number, default: 0 },
                         utr: { type: String },
+                        isPartlyPaid: { type: Boolean, default: false },
+                        requestedStatus: {
+                            type: String,
+                            default: "partialPaid",
+                        },
                     },
                 ],
                 requestedStatus: {
                     type: String,
-                    enum: ["closed", "partialPaid", "settled", "writeOff"],
+                    enum: ["closed", "settled", "writeOff"],
                 },
                 isActive: { type: Boolean, default: true },
                 isClosed: { type: Boolean, default: false },
-                isPartlyPaid: { type: Boolean, default: false },
                 isSettled: { type: Boolean, default: false },
                 isWriteOff: { type: Boolean, default: false },
                 defaulted: { type: Boolean, default: false },
@@ -74,8 +78,7 @@ closedSchema.methods.setStatusFlags = function (loanEntry, status) {
             loanEntry.isActive = false;
             break;
         case "partialPaid":
-            loanEntry.isPartlyPaid = true;
-            loanEntry.isVerified = true;
+            loanEntry.partialPaid.isPartlyPaid = true;
             break;
         default:
             // Optional: If no valid status is provided, we can reset flags or handle errors
