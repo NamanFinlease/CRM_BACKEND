@@ -295,37 +295,10 @@ export const closedLeads = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit) || 10; // items per page
     const skip = (page - 1) * limit;
 
-    const pipeline = [
-        {
-            $match: {
-                // Match the parent document where the data array contains elements
-                // that have isActive: false and isClosed: true
-                "data.isActive": false,
-                "data.isClosed": true,
-            },
-        },
-        {
-            $project: {
-                data: {
-                    $filter: {
-                        input: "$data",
-                        as: "item", // Alias for each element in the array
-                        cond: {
-                            $and: [
-                                { $eq: ["$$item.isActive", false] }, // Condition for isActive
-                                { $eq: ["$$item.isClosed", true] }, // Condition for isClosed
-                            ],
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const results = await Closed.aggregate(pipeline);
-
-    // Populate the filtered data
-    const populatedRecord = await Closed.populate(results, {
+    const closedLeads = await Closed.find({
+        "data.isActive": false,
+        "data.isClosed": true,
+    }).populate({
         path: "data.disbursal",
         populate: {
             path: "sanction", // Populating the 'sanction' field in Disbursal
@@ -352,7 +325,7 @@ export const closedLeads = asyncHandler(async (req, res) => {
         totalClosedLeads,
         totalPages: Math.ceil(totalClosedLeads / limit),
         currentPage: page,
-        closedLeads: populatedRecord,
+        closedLeads,
     });
     // }
 });
