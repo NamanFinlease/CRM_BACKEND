@@ -254,6 +254,7 @@ export const updateActiveLead = asyncHandler(async (req, res) => {
                 // If partialPaid is present in the updates, push the object into the array
                 updateOperation.$push = {
                     "data.$.partialPaid": updates.data.partialPaid,
+                    "data.$.requestedStatus": updates.data.requestedStatus,
                 };
             } else {
                 updateOperation.$set = {
