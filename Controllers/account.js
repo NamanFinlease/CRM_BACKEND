@@ -125,7 +125,10 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 // @route PATCH /api/accounts/active/verify/:loanNo
 // @access Private
 export const verifyActiveLead = asyncHandler(async (req, res) => {
-    if (req.activeRole === "accountExecutive") {
+    if (
+        req.activeRole === "accountExecutive" ||
+        req.activeRole === "collectionExecutive"
+    ) {
         const { loanNo } = req.params;
         const { utr, status } = req.body;
 
