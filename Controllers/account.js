@@ -7,11 +7,11 @@ import Closed from "../models/Closed.js";
 export const activeLeadsToVerify = asyncHandler(async (req, res) => {
     if (
         req.activeRole === "accountExecutive" ||
-        req.activeRecord === "collectionExecutive"
+        req.activeRole === "collectionExecutive"
     ) {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
-        const skip = (page - 1) * limit;
+        // const page = parseInt(req.query.page) || 1; // current page
+        // const limit = parseInt(req.query.limit) || 10; // items per page
+        // const skip = (page - 1) * limit;
 
         const pipeline = [
             {
@@ -68,11 +68,16 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                 },
             },
             {
-                $skip: skip,
+                $sort: {
+                    updatedAt: -1, // Sort by updatedAt in descending order
+                },
             },
-            {
-                $limit: limit,
-            },
+            // {
+            //     $skip: skip,
+            // },
+            // {
+            //     $limit: limit,
+            // },
         ];
 
         const results = await Closed.aggregate(pipeline).sort({
@@ -99,6 +104,9 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 
         const totalActiveLeadsToVerify = await Closed.countDocuments({
             "data.isActive": true,
+            "data.isDisbursed": true,
+            "data.isVerified": false,
+            "data.isClosed": false,
             $or: [
                 { "data.closingDate": { $exists: true, $ne: null } },
                 { "data.closingAmount": { $exists: true, $ne: 0 } },
@@ -117,8 +125,8 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 
         res.json({
             totalActiveLeadsToVerify,
-            totalPages: Math.ceil(totalActiveLeadsToVerify / limit),
-            currentPage: page,
+            // totalPages: Math.ceil(totalActiveLeadsToVerify / limit),
+            // currentPage: page,
             leadsToVerify,
         });
     }
