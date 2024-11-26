@@ -45,9 +45,9 @@ export const createActiveLead = async (pan, loanNo, disbursal) => {
 // @access Private
 export const activeLeads = asyncHandler(async (req, res) => {
     if (req.activeRole === "collectionExecutive") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
-        const skip = (page - 1) * limit;
+        // const page = parseInt(req.query.page) || 1; // current page
+        // const limit = parseInt(req.query.limit) || 10; // items per page
+        // const skip = (page - 1) * limit;
 
         const pipeline = [
             {
@@ -56,6 +56,7 @@ export const activeLeads = asyncHandler(async (req, res) => {
                     // that have isActive: true
                     "data.isActive": true,
                     "data.isDisbursed": true,
+                    "data.isClosed": false,
                 },
             },
             {
@@ -86,11 +87,16 @@ export const activeLeads = asyncHandler(async (req, res) => {
                 },
             },
             {
-                $skip: skip,
+                $sort: {
+                    updatedAt: -1, // Sort by updatedAt in descending order
+                },
             },
-            {
-                $limit: limit,
-            },
+            // {
+            //     $skip: skip,
+            // },
+            // {
+            //     $limit: limit,
+            // },
         ];
 
         const results = await Closed.aggregate(pipeline);
@@ -120,8 +126,8 @@ export const activeLeads = asyncHandler(async (req, res) => {
 
         res.json({
             totalActiveLeads,
-            totalPages: Math.ceil(totalActiveLeads / limit),
-            currentPage: page,
+            // totalPages: Math.ceil(totalActiveLeads / limit),
+            // currentPage: page,
             activeLeads,
         });
     }
@@ -254,6 +260,7 @@ export const updateActiveLead = asyncHandler(async (req, res) => {
                 // If partialPaid is present in the updates, push the object into the array
                 updateOperation.$push = {
                     "data.$.partialPaid": updates.data.partialPaid,
+                    "data.$.requestedStatus": updates.data.requestedStatus,
                 };
             } else {
                 updateOperation.$set = {
@@ -290,57 +297,32 @@ export const updateActiveLead = asyncHandler(async (req, res) => {
 // @access Private
 export const closedLeads = asyncHandler(async (req, res) => {
     // if (req.activeRole === "accountExecutive") {
-    const page = parseInt(req.query.page) || 1; // current page
-    const limit = parseInt(req.query.limit) || 10; // items per page
-    const skip = (page - 1) * limit;
+    // const page = parseInt(req.query.page) || 1; // current page
+    // const limit = parseInt(req.query.limit) || 10; // items per page
+    // const skip = (page - 1) * limit;
 
-    const pipeline = [
-        {
-            $match: {
-                // Match the parent document where the data array contains elements
-                // that have isActive: false and isClosed: true
-                "data.isActive": false,
-                "data.isClosed": true,
-            },
-        },
-        {
-            $project: {
-                data: {
-                    $filter: {
-                        input: "$data",
-                        as: "item", // Alias for each element in the array
-                        cond: {
-                            $and: [
-                                { $eq: ["$$item.isActive", false] }, // Condition for isActive
-                                { $eq: ["$$item.isClosed", true] }, // Condition for isClosed
-                            ],
-                        },
+    const closedLeads = await Closed.find({
+        "data.isActive": false,
+        "data.isClosed": true,
+    })
+        .populate({
+            path: "data.disbursal",
+            populate: {
+                path: "sanction", // Populating the 'sanction' field in Disbursal
+                populate: [
+                    { path: "approvedBy" },
+                    {
+                        path: "application",
+                        populate: [
+                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+                            { path: "creditManagerId" }, // Populate creditManagerId
+                            { path: "recommendedBy" },
+                        ],
                     },
-                },
+                ],
             },
-        },
-    ];
-
-    const results = await Closed.aggregate(pipeline);
-
-    // Populate the filtered data
-    const populatedRecord = await Closed.populate(results, {
-        path: "data.disbursal",
-        populate: {
-            path: "sanction", // Populating the 'sanction' field in Disbursal
-            populate: [
-                { path: "approvedBy" },
-                {
-                    path: "application",
-                    populate: [
-                        { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
-                        { path: "creditManagerId" }, // Populate creditManagerId
-                        { path: "recommendedBy" },
-                    ],
-                },
-            ],
-        },
-    });
+        })
+        .sort({ updatedAt: -1 });
 
     const totalClosedLeads = await Closed.countDocuments({
         "data.isActive": false,
@@ -349,9 +331,9 @@ export const closedLeads = asyncHandler(async (req, res) => {
 
     res.json({
         totalClosedLeads,
-        totalPages: Math.ceil(totalClosedLeads / limit),
-        currentPage: page,
-        populatedRecord,
+        // totalPages: Math.ceil(totalClosedLeads / limit),
+        // currentPage: page,
+        closedLeads,
     });
     // }
 });

@@ -18,16 +18,16 @@ const closedSchema = new mongoose.Schema(
                 date: { type: Date },
                 amount: { type: Number, default: 0 },
                 discount: { type: Number, default: 0 },
-                utr: { type: String },
+                utr: { type: String, unique: true },
                 partialPaid: [
                     {
                         date: { type: Date },
                         amount: { type: Number, default: 0 },
-                        utr: { type: String },
+                        utr: { type: String, unique: true },
                         isPartlyPaid: { type: Boolean, default: false },
                         requestedStatus: {
                             type: String,
-                            default: "partialPaid",
+                            enum: ["partialPaid"],
                         },
                     },
                 ],
@@ -47,44 +47,6 @@ const closedSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
-
-// Custom setter for flags to make sure only the correct one is true
-closedSchema.methods.setStatusFlags = function (loanEntry, status) {
-    // Reset all status-related flags first
-    loanEntry.isClosed = false;
-    loanEntry.isPartlyPaid = false;
-    loanEntry.isSettled = false;
-    loanEntry.isWriteOff = false;
-    loanEntry.defaulted = false;
-    loanEntry.isVerified = false; // Reset isVerified flag as well
-    loanEntry.isActive = true; // Reset isActive flag as well
-
-    // Handle other status-based flags
-    switch (status) {
-        case "closed":
-            loanEntry.isClosed = true;
-            loanEntry.isVerified = true;
-            loanEntry.isActive = false;
-            break;
-        case "settled":
-            loanEntry.isSettled = true;
-            loanEntry.isVerified = true;
-            loanEntry.isActive = false;
-            break;
-        case "writeOff":
-            loanEntry.isWriteOff = true;
-            loanEntry.defaulted = true; // Set defaulted to true when it's written off
-            loanEntry.isVerified = true;
-            loanEntry.isActive = false;
-            break;
-        case "partialPaid":
-            loanEntry.partialPaid.isPartlyPaid = true;
-            break;
-        default:
-            // Optional: If no valid status is provided, we can reset flags or handle errors
-            break;
-    }
-};
 
 const Closed = mongoose.model("Closed", closedSchema);
 export default Closed;

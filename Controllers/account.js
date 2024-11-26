@@ -5,10 +5,13 @@ import Closed from "../models/Closed.js";
 // @route GET /api/accounts/active/verify
 // @access Private
 export const activeLeadsToVerify = asyncHandler(async (req, res) => {
-    if (req.activeRole === "accountExecutive") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
-        const skip = (page - 1) * limit;
+    if (
+        req.activeRole === "accountExecutive" ||
+        req.activeRole === "collectionExecutive"
+    ) {
+        // const page = parseInt(req.query.page) || 1; // current page
+        // const limit = parseInt(req.query.limit) || 10; // items per page
+        // const skip = (page - 1) * limit;
 
         const pipeline = [
             {
@@ -17,6 +20,8 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                     // that have isActive: true
                     "data.isActive": true,
                     "data.isDisbursed": true,
+                    "data.isVerified": false,
+                    "data.isClosed": false,
                     $or: [
                         { "data.date": { $exists: true, $ne: null } },
                         { "data.amount": { $exists: true, $ne: 0 } },
@@ -27,6 +32,7 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                                     date: { $exists: true, $ne: null },
                                     amount: { $exists: true, $gt: 0 },
                                     utr: { $exists: true },
+                                    isPartlyPaid: { $ne: true },
                                 },
                             },
                         },
@@ -62,14 +68,21 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                 },
             },
             {
-                $skip: skip,
+                $sort: {
+                    updatedAt: -1, // Sort by updatedAt in descending order
+                },
             },
-            {
-                $limit: limit,
-            },
+            // {
+            //     $skip: skip,
+            // },
+            // {
+            //     $limit: limit,
+            // },
         ];
 
-        const results = await Closed.aggregate(pipeline);
+        const results = await Closed.aggregate(pipeline).sort({
+            updatedAt: -1,
+        });
         // Populate the filtered data
         const leadsToVerify = await Closed.populate(results, {
             path: "data.disbursal",
@@ -91,6 +104,9 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 
         const totalActiveLeadsToVerify = await Closed.countDocuments({
             "data.isActive": true,
+            "data.isDisbursed": true,
+            "data.isVerified": false,
+            "data.isClosed": false,
             $or: [
                 { "data.closingDate": { $exists: true, $ne: null } },
                 { "data.closingAmount": { $exists: true, $ne: 0 } },
@@ -109,8 +125,8 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 
         res.json({
             totalActiveLeadsToVerify,
-            totalPages: Math.ceil(totalActiveLeadsToVerify / limit),
-            currentPage: page,
+            // totalPages: Math.ceil(totalActiveLeadsToVerify / limit),
+            // currentPage: page,
             leadsToVerify,
         });
     }
@@ -122,37 +138,14 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 export const verifyActiveLead = asyncHandler(async (req, res) => {
     if (req.activeRole === "accountExecutive") {
         const { loanNo } = req.params;
-        const { status } = req.body;
+        const { utr, status } = req.body;
 
-        const pipeline = [
+        const loanEntry = await Closed.findOne(
+            { "data.loanNo": loanNo }, // Match documents where data array contains loanNo
             {
-                $match: { "data.loanNo": loanNo }, // Match documents where the data array contains the loanNo
-            },
-            {
-                $project: {
-                    data: {
-                        $filter: {
-                            input: "$data",
-                            as: "item", // Alias for each element in the array
-                            cond: { $eq: ["$$item.loanNo", loanNo] }, // Condition to match
-                        },
-                    },
-                },
-            },
-        ];
-
-        const activeRecord = (await Closed.aggregate(pipeline))[0];
-
-        if (!activeRecord || !activeRecord.data?.length) {
-            res.status(404);
-            throw new Error({
-                success: false,
-                message: "Loan number not found.",
-            });
-        }
-
-        // Populate the filtered data
-        const populatedRecord = await Closed.populate(activeRecord, {
+                "data.$": 1, // Project only the matching element in the data array
+            }
+        ).populate({
             path: "data.disbursal",
             populate: {
                 path: "sanction", // Populating the 'sanction' field in Disbursal
@@ -170,45 +163,81 @@ export const verifyActiveLead = asyncHandler(async (req, res) => {
             },
         });
 
-        // const activeRecord = await Closed.findOne({
-        //     "data.loanNo": loanNo,
-        // });
-        // if (!activeRecord) {
-        //     res.status(404);
-        //     throw new Error({
-        //         success: false,
-        //         message: "Loan number not found.",
-        //     });
-        // }
-
-        // Locate the specific loan entry in the data array
-        // const loanIndex = activeRecord.data.findIndex(
-        //     (loan) => loan.loanNo === loanNo
-        // );
-        // if (loanIndex === -1) {
-        //     res.status(404);
-        //     throw new Error({
-        //         success: false,
-        //         message: "Loan entry not found in the record.",
-        //     });
-        // }
-
-        // Access the loan entry from the data array
-        const loanEntry = populatedRecord.data[0]; // Accessing the loan entry
+        if (!loanEntry || !loanEntry.data?.length) {
+            res.status(404);
+            throw new Error({
+                success: false,
+                message: "Loan number not found.",
+            });
+        }
 
         // Ensure the status selected by the account executive matches the requestedStatus
-        if (loanEntry.requestedStatus !== status) {
+        if (
+            loanEntry.data[0].partialPaid.length > 0 &&
+            loanEntry.data[0].partialPaid.some((item) => !item.isPartlyPaid)
+        ) {
+            const index = loanEntry.data[0].partialPaid.findIndex(
+                (item) => item.utr === utr
+            );
+
+            if (
+                loanEntry.data[0].partialPaid[index].requestedStatus === status
+            ) {
+                // Update the specific partialPaid item and any required flags
+                const updateQuery = {
+                    $set: {
+                        "data.$[dataElem].partialPaid.$[partialElem].isPartlyPaid": true,
+                    },
+                };
+                const arrayFilters = [
+                    { "dataElem.loanNo": loanNo }, // Match the correct data array
+                    { "partialElem.utr": utr }, // Match the correct partialPaid item
+                ];
+                await Closed.updateOne(
+                    { "data.loanNo": loanNo }, // Query to find the document
+                    updateQuery, // Fields to update
+                    { arrayFilters } // Filters for nested array elements
+                );
+            }
+        } else if (loanEntry.data[0].requestedStatus === status) {
+            // Handle broader loanEntry field updates based on requestedStatus
+            const flagUpdates = {}; // Initialize flag updates
+
+            switch (status) {
+                case "settled":
+                    flagUpdates["data.$[dataElem].isSettled"] = true;
+                    flagUpdates["data.$[dataElem].isVerified"] = true;
+                    flagUpdates["data.$[dataElem].isActive"] = false;
+                    break;
+                case "closed":
+                    flagUpdates["data.$[dataElem].isClosed"] = true;
+                    flagUpdates["data.$[dataElem].isVerified"] = true;
+                    flagUpdates["data.$[dataElem].isActive"] = false;
+                    break;
+                case "writeOff":
+                    flagUpdates["data.$[dataElem].isWriteOff"] = true;
+                    flagUpdates["data.$[dataElem].defaulted"] = true;
+                    flagUpdates["data.$[dataElem].isVerified"] = true;
+                    flagUpdates["data.$[dataElem].isActive"] = false;
+                    break;
+                default:
+                    res.status(400);
+                    throw new Error(
+                        `Invalid status "${status}". Unable to update loan entry.`
+                    );
+            }
+            // Update broader fields with constructed flags
+            await Closed.updateOne(
+                { "data.loanNo": loanNo },
+                { $set: flagUpdates },
+                { arrayFilters: [{ "dataElem.loanNo": loanNo }] }
+            );
+        } else {
             res.status(400);
             throw new Error(
                 "Contact the Collection Executive because the status they requested is different from what you're trying to do!!"
             );
         }
-
-        // Call the setStatusFlags method from the schema to set the flags based on the selected status
-        await loanEntry.setStatusFlags(loanEntry, status);
-
-        // Save the updated record to the database
-        await populatedRecord.save();
 
         // Send a success response indicating the status was successfully verified
         return res.json({
@@ -224,13 +253,19 @@ export const verifyActiveLead = asyncHandler(async (req, res) => {
 export const rejectPaymentVerification = asyncHandler(async (req, res) => {
     if (req.activeRole === "accountExecutive") {
         const { loanNo } = req.params;
+        const { utr } = req.body;
 
         // Find the document containing the specific loanNo in the `data` array
         const activeRecord = await Closed.findOne(
-            { "data.loanNo": loanNo },
+            {
+                "data.loanNo": loanNo,
+                $or: [{ "data.utr": utr }, { "data.partialPaid.utr": utr }],
+            },
             {
                 pan: 1, // Include only necessary fields
-                data: { $elemMatch: { loanNo: loanNo } }, // Fetch only the matched data entry
+                "data.partialPaid": 1, // Return only the partialPaid array
+                "data.loanNo": 1,
+                // data: { $elemMatch: { loanNo: loanNo } }, // Fetch only the matched data entry
             }
         ).populate({
             path: "data.disbursal",
@@ -257,9 +292,6 @@ export const rejectPaymentVerification = asyncHandler(async (req, res) => {
                 message: "Loan number not found.",
             });
         }
-
-        // Access the loan entry from the data array
-        const loanEntry = populatedRecord.data[0];
 
         // Remove the `requestedStatus` field
         await Closed.updateOne(

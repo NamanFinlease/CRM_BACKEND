@@ -38,9 +38,15 @@ export const createLead = asyncHandler(async (req, res) => {
 
     const name = fName.split(" ");
 
-    const docs = await Documents.create({
-        pan: pan,
-    });
+    let docs;
+    const exisitingDoc = await Documents.findOne({ pan: pan });
+    if (exisitingDoc) {
+        docs = exisitingDoc;
+    } else {
+        docs = await Documents.create({
+            pan: pan,
+        });
+    }
 
     const newLead = await Lead.create({
         fName: name[0],
