@@ -157,7 +157,7 @@ const addRecommendedByToSanctions = async () => {
 const matchPANFromExcel = async () => {
     try {
         // Load the Excel file
-        const workbook = xlsx.readFile("Speedoloan disbursal.xlsx"); // replace with your file path
+        const workbook = xlsx.readFile("Speedoloan-disbursal.xlsx"); // replace with your file path
         const sheetName = workbook.SheetNames[0]; // assuming data is in the first sheet
         const sheet = workbook.Sheets[sheetName];
 
@@ -168,7 +168,7 @@ const matchPANFromExcel = async () => {
 
         for (let row = 1; row <= range.e.r; row++) {
             // row 1 corresponds to B2
-            const cellAddress = `B${row + 1}`;
+            const cellAddress = `C${row + 1}`;
             const cell = sheet[cellAddress];
             if (cell && cell.v) {
                 const cleanedPanNumber = cell.v.replace(/\s+/g, "");
@@ -180,10 +180,12 @@ const matchPANFromExcel = async () => {
         let leadCount = 0;
         let applicationCount = 0;
         let sanctionCount = 0;
+        let sanctionedCount = 0;
 
         let leads = [];
         let applications = [];
         let sanctions = [];
+        let sanctioned = [];
 
         for (const panNumber of panNumbers) {
             // Check if PAN exists in the Lead collection
@@ -206,24 +208,53 @@ const matchPANFromExcel = async () => {
                         { path: "application", populate: { path: "lead" } },
                         { path: "recommendedBy", select: "fName mName lName" },
                     ]);
-
-                    if (sanction) {
+                    if (sanction?.isApproved) {
+                        sanctionedCount += 1;
+                        sanctioned.push(
+                            `${sanction.application.lead.fName}${
+                                sanction.application.lead.mName &&
+                                ` ${sanction.application.lead.mName}`
+                            }${
+                                sanction.application.lead.lName &&
+                                ` ${sanction.application.lead.lName}`
+                            }, ${sanction.application.lead.mobile}, ${
+                                sanction.application.lead.pan
+                            }`
+                        );
+                    } else if (sanction) {
                         sanctionCount += 1;
                         sanctions.push(
-                            `${sanction.application.lead.pan} in Sanction`
+                            `${sanction.application.lead.fName}${
+                                sanction.application.lead.mName &&
+                                ` ${sanction.application.lead.mName}`
+                            }${
+                                sanction.application.lead.lName &&
+                                ` ${sanction.application.lead.lName}`
+                            }, ${sanction.application.lead.mobile}, ${
+                                sanction.application.lead.pan
+                            }`
                         );
                     } else {
                         applicationCount += 1;
                         applications.push(
-                            `${application.lead.pan} in Application`
+                            `${application.lead.fName}${
+                                application.lead.mName &&
+                                ` ${application.lead.mName}`
+                            }${
+                                application.lead.lName &&
+                                ` ${application.lead.lName}`
+                            }, ${application.lead.mobile}, ${
+                                application.lead.pan
+                            }`
                         );
-                        // console.log(
-                        //     `No sanction found for application ${application._id}`
-                        // );
                     }
                 } else {
                     leadCount += 1;
-                    leads.push(`${lead.pan} in Lead`);
+                    leads.push(
+                        `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+                            lead.lName && ` ${lead.lName}`
+                        }, ${lead.mobile}, ${lead.pan}`
+                    );
                 }
             } else {
                 console.log(`No lead found for PAN ${panNumber}`);
@@ -236,11 +267,12 @@ const matchPANFromExcel = async () => {
             sanctions.length
         );
         const data = [
-            ["Lead", "Application", "Sanction"], // Header row
+            ["Lead", "Application", "Sanction", "Sanctioned"], // Header row
             ...Array.from({ length: maxLength }, (_, i) => [
                 leads[i] || "", // Column A
                 applications[i] || "", // Column B
                 sanctions[i] || "", // Column C
+                sanctioned[i] || "", // Column D
             ]),
         ];
 
@@ -525,9 +557,9 @@ async function main() {
     await connectToDatabase();
     // await migrateDocuments();
     // await updateLoanNumber();
-    await sanctionActiveLeadsMigration();
+    // await sanctionActiveLeadsMigration();
     // await updateLeadsWithDocumentIds();
-    // await matchPANFromExcel();
+    await matchPANFromExcel();
     // addRecommendedByToSanctions();
     // updateDisbursals();
     // migrateApplicationsToSanctions();
