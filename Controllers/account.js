@@ -5,10 +5,13 @@ import Closed from "../models/Closed.js";
 // @route GET /api/accounts/active/verify
 // @access Private
 export const activeLeadsToVerify = asyncHandler(async (req, res) => {
-    if (req.activeRole === "accountExecutive") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
-        const skip = (page - 1) * limit;
+    if (
+        req.activeRole === "accountExecutive" ||
+        req.activeRole === "collectionExecutive"
+    ) {
+        // const page = parseInt(req.query.page) || 1; // current page
+        // const limit = parseInt(req.query.limit) || 10; // items per page
+        // const skip = (page - 1) * limit;
 
         const pipeline = [
             {
@@ -65,11 +68,16 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
                 },
             },
             {
-                $skip: skip,
+                $sort: {
+                    updatedAt: -1, // Sort by updatedAt in descending order
+                },
             },
-            {
-                $limit: limit,
-            },
+            // {
+            //     $skip: skip,
+            // },
+            // {
+            //     $limit: limit,
+            // },
         ];
 
         const results = await Closed.aggregate(pipeline).sort({
@@ -96,6 +104,9 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 
         const totalActiveLeadsToVerify = await Closed.countDocuments({
             "data.isActive": true,
+            "data.isDisbursed": true,
+            "data.isVerified": false,
+            "data.isClosed": false,
             $or: [
                 { "data.closingDate": { $exists: true, $ne: null } },
                 { "data.closingAmount": { $exists: true, $ne: 0 } },
@@ -114,8 +125,8 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 
         res.json({
             totalActiveLeadsToVerify,
-            totalPages: Math.ceil(totalActiveLeadsToVerify / limit),
-            currentPage: page,
+            // totalPages: Math.ceil(totalActiveLeadsToVerify / limit),
+            // currentPage: page,
             leadsToVerify,
         });
     }
@@ -125,10 +136,7 @@ export const activeLeadsToVerify = asyncHandler(async (req, res) => {
 // @route PATCH /api/accounts/active/verify/:loanNo
 // @access Private
 export const verifyActiveLead = asyncHandler(async (req, res) => {
-    if (
-        req.activeRole === "accountExecutive" ||
-        req.activeRole === "collectionExecutive"
-    ) {
+    if (req.activeRole === "accountExecutive") {
         const { loanNo } = req.params;
         const { utr, status } = req.body;
 

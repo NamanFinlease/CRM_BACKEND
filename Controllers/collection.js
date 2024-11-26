@@ -45,9 +45,9 @@ export const createActiveLead = async (pan, loanNo, disbursal) => {
 // @access Private
 export const activeLeads = asyncHandler(async (req, res) => {
     if (req.activeRole === "collectionExecutive") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
-        const skip = (page - 1) * limit;
+        // const page = parseInt(req.query.page) || 1; // current page
+        // const limit = parseInt(req.query.limit) || 10; // items per page
+        // const skip = (page - 1) * limit;
 
         const pipeline = [
             {
@@ -87,16 +87,19 @@ export const activeLeads = asyncHandler(async (req, res) => {
                 },
             },
             {
-                $skip: skip,
+                $sort: {
+                    updatedAt: -1, // Sort by updatedAt in descending order
+                },
             },
-            {
-                $limit: limit,
-            },
+            // {
+            //     $skip: skip,
+            // },
+            // {
+            //     $limit: limit,
+            // },
         ];
 
-        const results = await Closed.aggregate(pipeline).sort({
-            updatedAt: -1,
-        });
+        const results = await Closed.aggregate(pipeline);
 
         // Populate the filtered data
         const activeLeads = await Closed.populate(results, {
@@ -123,8 +126,8 @@ export const activeLeads = asyncHandler(async (req, res) => {
 
         res.json({
             totalActiveLeads,
-            totalPages: Math.ceil(totalActiveLeads / limit),
-            currentPage: page,
+            // totalPages: Math.ceil(totalActiveLeads / limit),
+            // currentPage: page,
             activeLeads,
         });
     }
@@ -294,9 +297,9 @@ export const updateActiveLead = asyncHandler(async (req, res) => {
 // @access Private
 export const closedLeads = asyncHandler(async (req, res) => {
     // if (req.activeRole === "accountExecutive") {
-    const page = parseInt(req.query.page) || 1; // current page
-    const limit = parseInt(req.query.limit) || 10; // items per page
-    const skip = (page - 1) * limit;
+    // const page = parseInt(req.query.page) || 1; // current page
+    // const limit = parseInt(req.query.limit) || 10; // items per page
+    // const skip = (page - 1) * limit;
 
     const closedLeads = await Closed.find({
         "data.isActive": false,
@@ -328,8 +331,8 @@ export const closedLeads = asyncHandler(async (req, res) => {
 
     res.json({
         totalClosedLeads,
-        totalPages: Math.ceil(totalClosedLeads / limit),
-        currentPage: page,
+        // totalPages: Math.ceil(totalClosedLeads / limit),
+        // currentPage: page,
         closedLeads,
     });
     // }
