@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import "dotenv/config.js";
 import Application from "../models/Applications.js";
+import CamDetails from "../models/CAM.js";
 import Closed from "../models/Closed.js";
 import Disbursal from "../models/Disbursal.js";
 import Lead from "../models/Leads.js";
@@ -167,8 +168,8 @@ const matchPANFromExcel = async () => {
         const panNumbers = [];
 
         for (let row = 1; row <= range.e.r; row++) {
-            // row 1 corresponds to B2
-            const cellAddress = `C${row + 1}`;
+            // row 1 corresponds to D2
+            const cellAddress = `D${row + 1}`;
             const cell = sheet[cellAddress];
             if (cell && cell.v) {
                 const cleanedPanNumber = cell.v.replace(/\s+/g, "");
@@ -211,49 +212,53 @@ const matchPANFromExcel = async () => {
                     if (sanction?.isApproved) {
                         sanctionedCount += 1;
                         sanctioned.push(
-                            `${sanction.application.lead.fName}${
-                                sanction.application.lead.mName &&
-                                ` ${sanction.application.lead.mName}`
-                            }${
-                                sanction.application.lead.lName &&
-                                ` ${sanction.application.lead.lName}`
-                            }, ${sanction.application.lead.mobile}, ${
-                                sanction.application.lead.pan
-                            }`
+                            // `${sanction.application.lead.fName}${
+                            //     sanction.application.lead.mName &&
+                            //     ` ${sanction.application.lead.mName}`
+                            // }${
+                            //     sanction.application.lead.lName &&
+                            //     ` ${sanction.application.lead.lName}`
+                            // }, ${sanction.application.lead.mobile}, ${
+                            //     sanction.application.lead.pan
+                            // }`
+                            `${sanction._id.toString()}`
                         );
                     } else if (sanction) {
                         sanctionCount += 1;
                         sanctions.push(
-                            `${sanction.application.lead.fName}${
-                                sanction.application.lead.mName &&
-                                ` ${sanction.application.lead.mName}`
-                            }${
-                                sanction.application.lead.lName &&
-                                ` ${sanction.application.lead.lName}`
-                            }, ${sanction.application.lead.mobile}, ${
-                                sanction.application.lead.pan
-                            }`
+                            // `${sanction.application.lead.fName}${
+                            //     sanction.application.lead.mName &&
+                            //     ` ${sanction.application.lead.mName}`
+                            // }${
+                            //     sanction.application.lead.lName &&
+                            //     ` ${sanction.application.lead.lName}`
+                            // }, ${sanction.application.lead.mobile}, ${
+                            //     sanction.application.lead.pan
+                            // }`
+                            `${sanction._id.toString()}`
                         );
                     } else {
                         applicationCount += 1;
                         applications.push(
-                            `${application.lead.fName}${
-                                application.lead.mName &&
-                                ` ${application.lead.mName}`
-                            }${
-                                application.lead.lName &&
-                                ` ${application.lead.lName}`
-                            }, ${application.lead.mobile}, ${
-                                application.lead.pan
-                            }`
+                            // `${application.lead.fName}${
+                            //     application.lead.mName &&
+                            //     ` ${application.lead.mName}`
+                            // }${
+                            //     application.lead.lName &&
+                            //     ` ${application.lead.lName}`
+                            // }, ${application.lead.mobile}, ${
+                            //     application.lead.pan
+                            // }`
+                            `${application._id.toString()}`
                         );
                     }
                 } else {
                     leadCount += 1;
                     leads.push(
-                        `${lead.fName}${lead.mName && ` ${lead.mName}`}${
-                            lead.lName && ` ${lead.lName}`
-                        }, ${lead.mobile}, ${lead.pan}`
+                        // `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+                        //     lead.lName && ` ${lead.lName}`
+                        // }, ${lead.mobile}, ${lead.pan}`
+                        `${lead._id.toString()}`
                     );
                 }
             } else {
@@ -549,6 +554,183 @@ const sanctionActiveLeadsMigration = async () => {
         }
     } catch (error) {
         console.log(`Some error occured: ${error}`);
+    }
+};
+
+const sanctionDataChange = async () => {
+    try {
+        // Load the Excel file
+        const workbook = xlsx.readFile("PAN_Matching_Results.xlsx"); // replace with your file path
+        const sheetName = workbook.SheetNames[0]; // assuming data is in the first sheet
+        const sheet = workbook.Sheets[sheetName];
+
+        const range = xlsx.utils.decode_range(sheet["!ref"]);
+
+        // Extract PAN numbers from column B, starting at row 2
+        const sanctionIds = [];
+
+        for (let row = 1; row <= range.e.r; row++) {
+            // row 1 corresponds to D2
+            const cellAddress = `C${row + 1}`;
+            const cell = sheet[cellAddress];
+            if (cell && cell.v) {
+                const cleanedId = cell.v.replace(/\s+/g, "");
+                // Check if the cell exists and has a value
+                sanctionIds.push(cleanedId);
+            }
+        }
+
+        let sanctions = [];
+        let sanctioned = [];
+
+        const lastSanctioned = await mongoose.model("Sanction").aggregate([
+            {
+                $match: { loanNo: { $exists: true, $ne: null } },
+            },
+            {
+                $project: {
+                    numericLoanNo: {
+                        $toInt: { $substr: ["$loanNo", 6, -1] }, // Extract numeric part
+                    },
+                },
+            },
+            {
+                $sort: { numericLoanNo: -1 }, // Sort in descending order
+            },
+            { $limit: 1 }, // Get the highest number
+        ]);
+
+        for (const id of sanctionIds) {
+            // Check Id in sanction
+            const sanction = await Sanction.findById(id).populate({
+                path: "application",
+                populate: { path: "lead" },
+            });
+            const application = await Application.findById(
+                sanction.application._id.toString()
+            );
+            const cam = await CamDetails.findOne({
+                leadId: sanction.application.lead._id.toString(),
+            });
+
+            sanction.isApproved = true;
+            sanction.eSigned = true;
+            sanction.isDibursed = true;
+            sanction.approvedBy = "672089a263c1e1bd8a0ba8b7";
+            sanction.recommendedBy = sanction.application.recommendedBy;
+            sanction.sanctionDate = cam.disbursalDate;
+
+            // const sanction = await Sanction.findByIdAndUpdate(id,{
+            //     isApproved: true,
+
+            // }).populate({ path: "recommendedBy", select: "fName mName lName" });
+
+            // if (sanction) {
+            //     const application = await Application.findOne({
+            //         lead: lead._id,
+            //     }).populate([
+            //         { path: "lead" },
+            //         { path: "recommendedBy", select: "fName mName lName" },
+            //     ]);
+
+            //     if (application) {
+            //         const sanction = await Sanction.findOne({
+            //             application: application._id,
+            //         }).populate([
+            //             { path: "application", populate: { path: "lead" } },
+            //             { path: "recommendedBy", select: "fName mName lName" },
+            //         ]);
+            //         if (sanction?.isApproved) {
+            //             sanctionedCount += 1;
+            //             sanctioned.push(
+            //                 // `${sanction.application.lead.fName}${
+            //                 //     sanction.application.lead.mName &&
+            //                 //     ` ${sanction.application.lead.mName}`
+            //                 // }${
+            //                 //     sanction.application.lead.lName &&
+            //                 //     ` ${sanction.application.lead.lName}`
+            //                 // }, ${sanction.application.lead.mobile}, ${
+            //                 //     sanction.application.lead.pan
+            //                 // }`
+            //                 `${sanction._id.toString()}`
+            //             );
+            //         } else if (sanction) {
+            //             sanctionCount += 1;
+            //             sanctions.push(
+            //                 // `${sanction.application.lead.fName}${
+            //                 //     sanction.application.lead.mName &&
+            //                 //     ` ${sanction.application.lead.mName}`
+            //                 // }${
+            //                 //     sanction.application.lead.lName &&
+            //                 //     ` ${sanction.application.lead.lName}`
+            //                 // }, ${sanction.application.lead.mobile}, ${
+            //                 //     sanction.application.lead.pan
+            //                 // }`
+            //                 `${sanction._id.toString()}`
+            //             );
+            //         } else {
+            //             applicationCount += 1;
+            //             applications.push(
+            //                 // `${application.lead.fName}${
+            //                 //     application.lead.mName &&
+            //                 //     ` ${application.lead.mName}`
+            //                 // }${
+            //                 //     application.lead.lName &&
+            //                 //     ` ${application.lead.lName}`
+            //                 // }, ${application.lead.mobile}, ${
+            //                 //     application.lead.pan
+            //                 // }`
+            //                 `${application._id.toString()}`
+            //             );
+            //         }
+            //     } else {
+            //         leadCount += 1;
+            //         leads.push(
+            //             // `${lead.fName}${lead.mName && ` ${lead.mName}`}${
+            //             //     lead.lName && ` ${lead.lName}`
+            //             // }, ${lead.mobile}, ${lead.pan}`
+            //             `${lead._id.toString()}`
+            //         );
+            //     }
+            // } else {
+            //     console.log(`No lead found for PAN ${panNumber}`);
+            // }
+        }
+        // Prepare data for Excel with leads in column A, applications in column B, and sanctions in column C
+        const maxLength = Math.max(
+            leads.length,
+            applications.length,
+            sanctions.length
+        );
+        const data = [
+            ["Lead", "Application", "Sanction", "Sanctioned"], // Header row
+            ...Array.from({ length: maxLength }, (_, i) => [
+                leads[i] || "", // Column A
+                applications[i] || "", // Column B
+                sanctions[i] || "", // Column C
+                sanctioned[i] || "", // Column D
+            ]),
+        ];
+
+        // Create a new workbook and worksheet
+        const newWorkbook = xlsx.utils.book_new();
+        const newWorksheet = xlsx.utils.aoa_to_sheet(data);
+
+        // Append the worksheet to the workbook
+        xlsx.utils.book_append_sheet(newWorkbook, newWorksheet, "PAN Results");
+
+        // Write the workbook to a file
+        xlsx.writeFile(newWorkbook, "PAN_Matching_Results.xlsx");
+
+        console.log(
+            "PAN matching process completed and results saved to Excel"
+        );
+    } catch (error) {
+        console.error("Error during PAN matching:", error);
+    } finally {
+        // Disconnect from MongoDB
+        await mongoose.disconnect();
+        console.log("Disconnected from MongoDB");
     }
 };
 

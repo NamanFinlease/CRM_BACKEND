@@ -174,43 +174,61 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 _id: sanction.application.lead,
             });
 
-            const pipeline = [
+            // const pipeline = [
+            //     {
+            //         $match: {
+            //             // Match the parent document where this pan exists
+            //             pan: sanction.application.applicant.personalDetails.pan,
+            //         },
+            //     },
+            //     {
+            //         $project: {
+            //             pan: 1,
+            //             data: {
+            //                 $arrayElemAt: [
+            //                     {
+            //                         $filter: {
+            //                             input: "$data",
+            //                             as: "item", // Alias for each element in the array
+            //                             cond: {
+            //                                 $and: [
+            //                                     {
+            //                                         $eq: [
+            //                                             "$$item.isActive",
+            //                                             true,
+            //                                         ],
+            //                                     }, // Condition for isActive
+            //                                 ],
+            //                             },
+            //                         },
+            //                     },
+            //                     0,
+            //                 ],
+            //             },
+            //         },
+            //     },
+            // ];
+            // const activeLead = await Closed.aggregate(pipeline);
+            const activeLead = await Closed.findOne(
                 {
-                    $match: {
-                        // Match the parent document where this pan exists
-                        pan: sanction.application.applicant.personalDetails.pan,
-                    },
-                },
-                {
-                    $project: {
-                        pan: 1,
-                        data: {
-                            $arrayElemAt: [
-                                {
-                                    $filter: {
-                                        input: "$data",
-                                        as: "item", // Alias for each element in the array
-                                        cond: {
-                                            $and: [
-                                                {
-                                                    $eq: [
-                                                        "$$item.isActive",
-                                                        true,
-                                                    ],
-                                                }, // Condition for isActive
-                                            ],
-                                        },
-                                    },
-                                },
-                                0,
-                            ],
+                    pan: sanction.application.applicant.personalDetails.pan,
+                    data: {
+                        $elemMatch: {
+                            isActive: true,
                         },
                     },
                 },
-            ];
-            const activeLead = await Closed.aggregate(pipeline);
+                {
+                    pan: 1,
+                    data: {
+                        $elemMatch: {
+                            isActive: true,
+                        },
+                    },
+                }
+            );
 
-            if (activeLead.length > 0) {
+            if (activeLead !== null || activeLead !== undefined) {
                 res.status(403);
                 throw new Error("This PAN already has an active lead!!");
             }
