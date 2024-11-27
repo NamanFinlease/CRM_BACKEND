@@ -228,7 +228,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 }
             );
 
-            if (activeLead !== null || activeLead !== undefined) {
+            if (activeLead) {
                 res.status(403);
                 throw new Error("This PAN already has an active lead!!");
             }
