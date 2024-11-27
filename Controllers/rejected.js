@@ -135,18 +135,30 @@ export const rejected = asyncHandler(async (req, res) => {
             throw new Error("Disbursal not found!!");
         }
 
-        const activeRecord = await Closed.updateOne(
-            { "data.loanNo": disbursal.loanNo }, // Find the document where the data array contains an object with the matching loanNo
-            {
-                $set: {
-                    "data.$.isActive": false, // Update the isActive field of the matched object
-                },
-            }
-        );
+        // const activeRecord = await Closed.updateOne(
+        //     { "data.loanNo": disbursal.loanNo }, // Find the document where the data array contains an object with the matching loanNo
+        //     {
+        //         $set: {
+        //             "data.$.isActive": false, // Update the isActive field of the matched object
+        //         },
+        //     }
+        // );
 
-        if (!activeRecord) {
-            res.status(500);
-            throw new Error(`${disbursal.loanNo} couldn't be closed!!`);
+        // if (!activeRecord) {
+        //     res.status(500);
+        //     throw new Error(`${disbursal.loanNo} couldn't be closed!!`);
+        // }
+
+        const closedDoc = await Closed.findOne({
+            "data.loanNo": disbursal.loanNo,
+        });
+        if (closedDoc) {
+            closedDoc.data = closedDoc.data.map((item) =>
+                item.loanNo === disbursal.loanNo
+                    ? { ...item, isActive: false, isClosed: true }
+                    : item
+            );
+            await closedDoc.save();
         }
 
         logs = await postLogs(
