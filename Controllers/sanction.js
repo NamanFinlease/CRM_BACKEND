@@ -256,6 +256,18 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 throw new Error("There was some problem with update!!");
             }
 
+            const newActiveLead = await createActiveLead(
+                sanction.application.applicant.personalDetails.pan,
+                existing.loanNo
+                // disbursalRes._id
+            );
+            if (!newActiveLead.success) {
+                res.status(400);
+                throw new Error(
+                    "Could not create an active lead for this record!!"
+                );
+            }
+
             const newDisbursal = new Disbursal({
                 sanction: sanction._id,
                 loanNo: existing.loanNo,
@@ -268,15 +280,23 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 throw new Error("Could not approve this application!!");
             }
 
-            const newActiveLead = await createActiveLead(
-                sanction.application.applicant.personalDetails.pan,
-                existing.loanNo,
-                disbursalRes._id
+            // Update the Closed collection
+            const updateResult = await Closed.updateOne(
+                {
+                    pan: pan,
+                    "data.loanNo": loanNo, // Match the document where the data array has this loanNo
+                },
+                {
+                    $set: {
+                        "data.$.disbursal": disbursalRes._id, // Use the `$` positional operator to update the matched array element
+                    },
+                }
             );
-            if (!newActiveLead.success) {
+
+            if (updateResult.modifiedCount === 0) {
                 res.status(400);
                 throw new Error(
-                    "Could not create an active lead for this record!!"
+                    "No matching record found to update in the Closed collection!"
                 );
             }
 

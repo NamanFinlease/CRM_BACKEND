@@ -6,34 +6,30 @@ import { postLogs } from "./logs.js";
 
 // @desc Create a lead to close after collection/recovery
 // @route POST /api/collections/
-export const createActiveLead = async (pan, loanNo, disbursal) => {
+export const createActiveLead = async (pan, loanNo) => {
     try {
         const existingActiveLead = await Closed.findOne({ pan: pan });
         if (!existingActiveLead) {
             const newActiveLead = await Closed.create({
                 pan,
-                data: [{ loanNo: loanNo, disbursal: disbursal }],
+                data: [{ loanNo: loanNo }],
             });
             if (!newActiveLead) {
                 return { success: false };
             }
             return { success: true };
-        } else {
-            // If the lead already exists, check if the disbursal ID is already in the data array
-            const doesDisbursalExist = existingActiveLead.data.some(
-                (entry) => entry.disbursal.toString() === disbursal.toString()
-            );
-
-            if (doesDisbursalExist) {
-                throw new Error("Disbursal ID already exists.");
-            }
+        } else if (
+            existingActiveLead.data.some((entry) => entry.isActive === false)
+        ) {
             // If disbursal ID is not found, add the new disbursal
-            existingActiveLead.data.push({ disbursal: disbursal });
+            existingActiveLead.data.push({ loanNo: loanNo });
             const res = await existingActiveLead.save();
             if (!res) {
                 return { success: false };
             }
             return { success: true };
+        } else {
+            return { success: false };
         }
     } catch (error) {
         console.log(error);
