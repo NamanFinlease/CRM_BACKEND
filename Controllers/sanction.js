@@ -17,8 +17,8 @@ import Sanction from "../models/Sanction.js";
 // @access Private
 export const getPendingSanctions = asyncHandler(async (req, res) => {
     if (req.activeRole === "sanctionHead") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
+        const page = parseInt(req.query.page); // current page
+        const limit = parseInt(req.query.limit); // items per page
         const skip = (page - 1) * limit;
 
         const query = {
@@ -54,8 +54,8 @@ export const getPendingSanctions = asyncHandler(async (req, res) => {
 // @access Private
 export const recommendedApplications = asyncHandler(async (req, res) => {
     if (req.activeRole === "creditManager") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
+        const page = parseInt(req.query.page); // current page
+        const limit = parseInt(req.query.limit); // items per page
         const skip = (page - 1) * limit;
 
         const query = {
@@ -88,8 +88,8 @@ export const recommendedApplications = asyncHandler(async (req, res) => {
     }
 
     if (req.activeRole === "sanctionHead" || activeRole === "admin") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
+        const page = parseInt(req.query.page); // current page
+        const limit = parseInt(req.query.limit); // items per page
         const skip = (page - 1) * limit;
 
         const query = {
@@ -175,41 +175,6 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 _id: sanction.application.lead,
             });
 
-            // const pipeline = [
-            //     {
-            //         $match: {
-            //             // Match the parent document where this pan exists
-            //             pan: sanction.application.applicant.personalDetails.pan,
-            //         },
-            //     },
-            //     {
-            //         $project: {
-            //             pan: 1,
-            //             data: {
-            //                 $arrayElemAt: [
-            //                     {
-            //                         $filter: {
-            //                             input: "$data",
-            //                             as: "item", // Alias for each element in the array
-            //                             cond: {
-            //                                 $and: [
-            //                                     {
-            //                                         $eq: [
-            //                                             "$$item.isActive",
-            //                                             true,
-            //                                         ],
-            //                                     }, // Condition for isActive
-            //                                 ],
-            //                             },
-            //                         },
-            //                     },
-            //                     0,
-            //                 ],
-            //             },
-            //         },
-            //     },
-            // ];
-            // const activeLead = await Closed.aggregate(pipeline);
             const activeLead = await Closed.findOne(
                 {
                     pan: sanction.application.applicant.personalDetails.pan,
@@ -347,8 +312,8 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
 // @route GET /api/sanction/approved
 // @access Private
 export const sanctioned = asyncHandler(async (req, res) => {
-    const page = parseInt(req.query.page) || 1; // current page
-    const limit = parseInt(req.query.limit) || 10; // items per page
+    const page = parseInt(req.query.page); // current page
+    const limit = parseInt(req.query.limit); // items per page
     const skip = (page - 1) * limit;
     let query;
     if (req.activeRole === "creditManager") {

@@ -14,8 +14,8 @@ export const getNewDisbursal = asyncHandler(async (req, res) => {
         req.activeRole === "disbursalManager" ||
         req.activeRole === "disbursalHead"
     ) {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
+        const page = parseInt(req.query.page); // current page
+        const limit = parseInt(req.query.limit); // items per page
         const skip = (page - 1) * limit;
 
         const query = {
@@ -167,8 +167,8 @@ export const allocatedDisbursal = asyncHandler(async (req, res) => {
         res.status(401);
         throw new Error("Not authorized!!!");
     }
-    const page = parseInt(req.query.page) || 1; // current page
-    const limit = parseInt(req.query.limit) || 10; // items per page
+    const page = parseInt(req.query.page); // current page
+    const limit = parseInt(req.query.limit); // items per page
     const skip = (page - 1) * limit;
     const disbursals = await Disbursal.find(query)
         .skip(skip)
@@ -260,8 +260,8 @@ export const disbursalPending = asyncHandler(async (req, res) => {
         req.activeRole === "disbursalHead" ||
         req.activeRole === "admin"
     ) {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
+        const page = parseInt(req.query.page); // current page
+        const limit = parseInt(req.query.limit); // items per page
         const skip = (page - 1) * limit;
 
         const query = {
@@ -413,8 +413,8 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
 // @access Private
 export const disbursed = asyncHandler(async (req, res) => {
     if (req.activeRole === "disbursalHead" || req.activeRole === "admin") {
-        const page = parseInt(req.query.page) || 1; // current page
-        const limit = parseInt(req.query.limit) || 10; // items per page
+        const page = parseInt(req.query.page); // current page
+        const limit = parseInt(req.query.limit); // items per page
         const skip = (page - 1) * limit;
 
         const query = {
