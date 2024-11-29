@@ -3,6 +3,7 @@ import Closed from "../models/Closed.js";
 import { createActiveLead } from "./collection.js";
 import { dateFormatter } from "../utils/dateFormatter.js";
 import Disbursal from "../models/Disbursal.js";
+import { exportApprovedSanctions } from "../utils/dataChange.js";
 import { generateSanctionLetter } from "../utils/sendsanction.js";
 import { getSanctionData } from "../utils/sanctionData.js";
 import mongoose from "mongoose";
@@ -283,6 +284,8 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 { new: true }
             );
 
+            const existing = await Sanction.findById(id);
+
             if (!update) {
                 res.status(400);
                 throw new Error("There was some problem with update!!");
@@ -290,7 +293,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
 
             const newDisbursal = new Disbursal({
                 sanction: sanction._id,
-                loanNo: update.loanNo,
+                loanNo: existing.loanNo,
             });
 
             const disbursalRes = await newDisbursal.save();
@@ -302,7 +305,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
 
             const newActiveLead = await createActiveLead(
                 sanction.application.applicant.personalDetails.pan,
-                update.loanNo,
+                existing.loanNo,
                 disbursalRes._id
             );
             if (!newActiveLead.success) {
@@ -380,4 +383,13 @@ export const sanctioned = asyncHandler(async (req, res) => {
         currentPage: page,
         sanction,
     });
+});
+
+// @desc Get report of today's sanctioned applications
+// @route GET /api/sanction/approved/report
+// @access Private
+export const sanctionedReport = asyncHandler(async (req, res) => {
+    const data = await exportApprovedSanctions();
+    console.log(data);
+    return res.json({ data });
 });

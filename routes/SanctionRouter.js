@@ -9,11 +9,13 @@ import {
     sanctionApprove,
     sanctionPreview,
     sanctioned,
+    sanctionedReport,
 } from "../Controllers/sanction.js";
 import { sentBack } from "../Controllers/sentBack.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 router.route("/approved").get(protect, sanctioned);
+router.get("/approved/report", protect, sanctionedReport);
 router.get("/pending", protect, getPendingSanctions);
 router.get("/recommended", protect, recommendedApplications);
 router.get("/hold", protect, getHold);

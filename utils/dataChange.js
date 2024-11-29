@@ -9,6 +9,8 @@ import Documents from "../models/Documents.js";
 import Sanction from "../models/Sanction.js";
 import Employee from "../models/Employees.js";
 import xlsx from "xlsx";
+import fs from "fs";
+import Bank from "../models/ApplicantBankDetails.js";
 
 const mongoURI = process.env.MONGO_URI;
 
@@ -734,14 +736,108 @@ const sanctionDataChange = async () => {
     }
 };
 
+// Utility function to get the start and end of the current day
+const getTodayRange = () => {
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setUTCHours(23, 59, 59, 999);
+
+    return { startOfDay, endOfDay };
+};
+
+// Function to extract data and generate Excel
+export const exportApprovedSanctions = async () => {
+    try {
+        const { startOfDay, endOfDay } = getTodayRange();
+
+        // Query the database
+        const sanctions = await Sanction.find({
+            isApproved: true,
+            updatedAt: { $gte: startOfDay, $lte: endOfDay },
+        })
+            .populate({
+                path: "application",
+                populate: { path: "lead" },
+            })
+            .lean();
+        // .populate({
+        //     path: "application",
+        //     populate: [
+        //         { path: "applicant" },
+        //         { path: "lead" },
+        //     ],
+        // }) // Populate refs if needed
+        // .lean(); // Return plain JavaScript objects
+
+        if (sanctions.length === 0) {
+            console.log("No data found for today.");
+            return;
+        }
+
+        console.log(sanctions);
+
+        // Format data for Excel
+        const data = await Promise.all(
+            sanctions.map(async (sanction) => {
+                const cam = await CamDetails.findOne({
+                    leadId: sanction.application.lead._id.toString(),
+                });
+                const bank = await Bank.findOne({
+                    borrowerId: sanction.application.applicant,
+                });
+                return {
+                    LoanNo: sanction.loanNo,
+
+                    Name: `${sanction.application.lead.fName}${
+                        sanction.application.lead.mName &&
+                        ` ${sanction.application.lead.mName}`
+                    }${
+                        sanction.application.lead.lName &&
+                        ` ${sanction.application.lead.lName}`
+                    }`,
+                    pan: sanction.application.lead.pan,
+                    loanRecommended: cam.details.loanRecommended,
+                    netDisbursal: cam.details.netDisbursalAmount,
+                    PF: cam.details.netAdminFeeAmount,
+                    "PF%": cam.details.adminFeePercentage,
+                    ROI: cam.details.roi,
+                    tenure: cam.details.eligibleTenure,
+                    disbursal: cam.details.disbursalDate,
+                    repayment: cam.details.repaymentDate,
+                    bankName: bank.bankName,
+                    accountNo: bank.bankAccNo,
+                    ifsc: bank.ifscCode,
+                };
+            })
+        );
+
+        return data;
+
+        // // Generate Excel file
+        // const worksheet = xlsx.utils.json_to_sheet(data);
+        // const workbook = xlsx.utils.book_new();
+        // xlsx.utils.book_append_sheet(workbook, worksheet, "ApprovedSanctions");
+
+        // const filePath = "./approved_sanctions_today.xlsx";
+        // xlsx.writeFile(workbook, filePath);
+
+        // console.log(`Excel file created at ${filePath}`);
+    } catch (error) {
+        console.error("Error generating Excel file:", error);
+    }
+};
+
 // Main Function to Connect and Run
 async function main() {
-    await connectToDatabase();
+    // await connectToDatabase();
     // await migrateDocuments();
     // await updateLoanNumber();
     // await sanctionActiveLeadsMigration();
     // await updateLeadsWithDocumentIds();
-    await matchPANFromExcel();
+    // await matchPANFromExcel();
+    // await exportApprovedSanctions();
     // addRecommendedByToSanctions();
     // updateDisbursals();
     // migrateApplicationsToSanctions();
