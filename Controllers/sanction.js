@@ -390,6 +390,5 @@ export const sanctioned = asyncHandler(async (req, res) => {
 // @access Private
 export const sanctionedReport = asyncHandler(async (req, res) => {
     const data = await exportApprovedSanctions();
-    console.log(data);
     return res.json({ data });
 });

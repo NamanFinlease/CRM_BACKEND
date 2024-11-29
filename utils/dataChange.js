@@ -776,8 +776,6 @@ export const exportApprovedSanctions = async () => {
             return;
         }
 
-        console.log(sanctions);
-
         // Format data for Excel
         const data = await Promise.all(
             sanctions.map(async (sanction) => {
