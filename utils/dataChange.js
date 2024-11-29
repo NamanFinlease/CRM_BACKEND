@@ -805,7 +805,7 @@ export const exportApprovedSanctions = async () => {
                     "Disbursal Date": cam.details.disbursalDate,
                     "Repayment Date": cam.details.repaymentDate,
                     "Bank Name": bank.bankName,
-                    "Account No": bank.bankAccNo,
+                    accountNo: bank.bankAccNo,
                     IFSC: bank.ifscCode,
                 };
             })
