@@ -786,7 +786,7 @@ export const exportApprovedSanctions = async () => {
                     borrowerId: sanction.application.applicant,
                 });
                 return {
-                    LoanNo: sanction.loanNo,
+                    "Loan No": sanction.loanNo,
 
                     Name: `${sanction.application.lead.fName}${
                         sanction.application.lead.mName &&
