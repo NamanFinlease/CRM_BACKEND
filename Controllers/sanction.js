@@ -283,7 +283,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
             // Update the Closed collection
             const updateResult = await Closed.updateOne(
                 {
-                    pan: pan,
+                    pan: sanction.application.applicant.personalDetails.pan,
                     "data.loanNo": loanNo, // Match the document where the data array has this loanNo
                 },
                 {
