@@ -795,18 +795,18 @@ export const exportApprovedSanctions = async () => {
                         sanction.application.lead.lName &&
                         ` ${sanction.application.lead.lName}`
                     }`,
-                    pan: sanction.application.lead.pan,
-                    loanRecommended: cam.details.loanRecommended,
-                    netDisbursal: cam.details.netDisbursalAmount,
+                    PAN: sanction.application.lead.pan,
+                    "Sanctioned Amount": cam.details.loanRecommended,
+                    "Disbursal Amount": cam.details.netDisbursalAmount,
                     PF: cam.details.netAdminFeeAmount,
                     "PF%": cam.details.adminFeePercentage,
                     ROI: cam.details.roi,
-                    tenure: cam.details.eligibleTenure,
-                    disbursal: cam.details.disbursalDate,
-                    repayment: cam.details.repaymentDate,
-                    bankName: bank.bankName,
-                    accountNo: bank.bankAccNo,
-                    ifsc: bank.ifscCode,
+                    Tenure: cam.details.eligibleTenure,
+                    "Disbursal Date": cam.details.disbursalDate,
+                    "Repayment Date": cam.details.repaymentDate,
+                    "Bank Name": bank.bankName,
+                    "Account No": bank.bankAccNo,
+                    IFSC: bank.ifscCode,
                 };
             })
         );
