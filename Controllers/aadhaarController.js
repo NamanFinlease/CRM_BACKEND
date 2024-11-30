@@ -21,10 +21,13 @@ export const aadhaarOtp = asyncHandler(async (req, res) => {
     }
 
     // Call the function to generate OTP using Aaadhaar number
-    const response = await generateAadhaarOtp(aadhaar);
+    const response = await generateAadhaarOtp(id, aadhaar);
+
     res.json({
         success: true,
-        trx_id: response.transaction_id,
+        transactionId: response.model.transactionId,
+        fwdp: response.model.fwdp,
+        codeVerifier: response.model.codeVerifier,
     });
 });
 
@@ -32,20 +35,26 @@ export const aadhaarOtp = asyncHandler(async (req, res) => {
 // @route PATCH /api/verify/aaadhaar-otp/:id
 // @access Private
 export const verifyAadhaar = asyncHandler(async (req, res) => {
-    const { id, trx_id } = req.query;
-    const { otp } = req.body;
+    const { id } = req.query;
+    const { otp, transactionId, fwdp, codeVerifier } = req.body;
 
     // Check if both OTP and request ID are provided
-    if (!otp || !trx_id) {
+    if (!otp || !transactionId || !fwdp || !codeVerifier) {
         res.status(400);
         throw new Error({
             success: false,
-            message: "Missing OTP or request ID.",
+            message: "Missing fields.",
         });
     }
 
     // Fetch Aaadhaar details using the provided OTP and request ID
-    const response = await verifyAadhaarOtp(otp, trx_id);
+    const response = await verifyAadhaarOtp(
+        id,
+        otp,
+        transactionId,
+        fwdp,
+        codeVerifier
+    );
 
     // Check if the response status code is 422 which is for failed verification
     if (!response.success) {
