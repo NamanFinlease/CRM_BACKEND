@@ -43,7 +43,14 @@ export const verifyAadhaarOtp = async (
     fwdp,
     codeVerifier
 ) => {
-    const data = { id, otp, transactionId, fwdp, codeVerifier };
+    const data = {
+        shareCode: id,
+        otp: otp,
+        transactionId: transactionId,
+        fwdp: fwdp,
+        codeVerifier: codeVerifier,
+        validateXml: true,
+    };
     try {
         const response = await axios.post(
             "https://svc.digitap.ai/ent/v3/kyc/submit-otp",
