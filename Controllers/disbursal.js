@@ -324,7 +324,7 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
             populate: { path: "application" },
         });
         const cam = await CamDetails.findOne({
-            leadId: disbursalData?.sanction?.application?.lead,
+            leadId: disbursalData?.sanction?.application?.lead.toString(),
         });
         // if()
         let currentDisbursalDate = new Date(disbursalDate);
@@ -394,12 +394,12 @@ export const approveDisbursal = asyncHandler(async (req, res) => {
         );
 
         const logs = await postLogs(
-            disbursal.application.lead._id,
+            disbursal.sanction.application.lead._id,
             "DISBURSAL APPLICATION APPROVED. SENDING TO DISBURSAL HEAD",
-            `${disbursal.application.lead.fName}${
-                disbursal.application.lead.mName &&
-                ` ${disbursal.application.lead.mName}`
-            } ${disbursal.application.lead.lName}`,
+            `${disbursal.sanction.application.lead.fName}${
+                disbursal.sanction.application.lead.mName &&
+                ` ${disbursal.sanction.application.lead.mName}`
+            } ${disbursal.sanction.application.lead.lName}`,
             `Application approved by ${req.employee.fName} ${req.employee.lName}`,
             `${remarks}`
         );
