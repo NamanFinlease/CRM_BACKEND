@@ -1,17 +1,18 @@
 import axios from "axios";
 
-export async function panVerify(pan) {
+export async function panVerify(leadId, pan) {
     const data = {
+        client_ref_num: `${leadId}`,
         pan: `${pan}`,
     };
 
     const response = await axios.post(
-        "https://www.timbleglance.com/api/pan_adv/",
+        "https://svc.digitap.ai/validation/kyc/v1/pan_details",
         data,
         {
             headers: {
-                "api-key": process.env.TIMBLE_APIKEY,
-                "app-id": process.env.TIMBLE_APPID,
+                authorization: process.env.DIGITAP_AUTH_KEY,
+                "Content-Type": "application/json",
             },
         }
     );

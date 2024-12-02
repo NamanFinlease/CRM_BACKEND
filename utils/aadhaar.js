@@ -1,48 +1,70 @@
 // config/otpUtil.js
 import axios from "axios";
 
-export const generateAadhaarOtp = async (aadhaar) => {
-    const data = { aadhaar_no: aadhaar };
-
-    const config = {
-        method: "post",
-        url: "https://www.timbleglance.com/api/aadhaar_otp_okyc/",
-        headers: {
-            "Content-Type": "application/json",
-            "api-key": process.env.TIMBLE_APIKEY,
-            "app-id": process.env.TIMBLE_APPID,
-        },
-        data,
-    };
-
+export const generateAadhaarOtp = async (id, aadhaar) => {
     try {
-        const response = await axios.request(config);
+        const data = { uniqueId: `${id}`, uid: `${aadhaar}` };
 
-        if (response.status !== 200) {
+        // const config = {
+        //     method: "post",
+        //     url: "https://svc.digitap.ai/ent/v3/kyc/intiate-kyc-auto",
+        //     headers: {
+        //         authorization: process.env.DIGITAP_AUTH_KEY,
+        //         "Content-Type": "application/json",
+        //     },
+        //     data,
+        // };
+
+        const response = await axios.post(
+            "https://svc.digitap.ai/ent/v3/kyc/intiate-kyc-auto",
+            data,
+            {
+                headers: {
+                    authorization: process.env.DIGITAP_AUTH_KEY,
+                    "Content-Type": "application/json",
+                    "User-Agent": "curl/7.68.0",
+                },
+            }
+        );
+
+        if (response.data.code !== "200") {
             return { message: "Please enter a valid Aadhaar" };
         }
         return response.data; // Return the response data
     } catch (error) {
-        throw new Error(error.response?.data?.message || "An error occurred"); // Handle errors
+        throw new Error(error); // Handle errors
     }
 };
 
-export const verifyAadhaarOtp = async (otp, trx_id) => {
-    const data = { otp: otp, trx_id: trx_id };
+export const verifyAadhaarOtp = async (
+    id,
+    otp,
+    transactionId,
+    fwdp,
+    codeVerifier
+) => {
     try {
+        const data = {
+            shareCode: "1234",
+            otp: otp,
+            transactionId: `${transactionId}`,
+            fwdp: `${fwdp}`,
+            codeVerifier: `${codeVerifier}`,
+            validateXml: true,
+        };
+        console.log(data);
         const response = await axios.post(
-            "https://www.timbleglance.com/api/aadhaar_result_okyc/",
+            "https://svc.digitap.ai/ent/v3/kyc/submit-otp",
             data,
             {
                 headers: {
-                    "api-key": process.env.TIMBLE_APIKEY,
-                    "app-id": process.env.TIMBLE_APPID,
+                    authorization: process.env.DIGITAP_AUTH_KEY,
                     "Content-Type": "application/json",
                 },
             }
         );
         return response.data; // Return the response data
     } catch (error) {
-        throw new Error(error?.data?.response_message || "An error occurred");
+        throw new Error(error?.data?.msg || "An error occurred");
     }
 };

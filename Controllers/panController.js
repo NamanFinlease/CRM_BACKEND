@@ -4,7 +4,7 @@ import { panVerify, panAadhaarLinkage } from "../utils/pan.js";
 import PanDetails from "../models/PanDetails.js";
 
 // @desc Verify Pan.
-// @route Post /api/verify/pan/:id
+// @route GET /api/verify/pan/:id
 // @access Private
 export const getPanDetails = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -27,22 +27,27 @@ export const getPanDetails = asyncHandler(async (req, res) => {
     }
 
     // Call the get panDetails Function
-    const panDetails = await panVerify(pan);
+    const response = await panVerify(id, pan);
+
+    if (response.result_code !== 101) {
+        res.status(400);
+        throw new Error("Error with Digitap!");
+    }
 
     // Now respond with status 200 with JSON success true
     return res.json({
-        data: panDetails,
+        data: response.result,
     });
 });
 
 // @desc Save the pan details once verified.
-// @route POST /api/verify/save-pan/:id
+// @route POST /api/verify/pan/:id
 // @access Private
 export const savePanDetails = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { data } = req.body;
 
-    const pan = data.PAN;
+    const pan = data.pan;
 
     const existingPan = await PanDetails.findOne({ "data.PAN": pan });
 

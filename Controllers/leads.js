@@ -114,7 +114,6 @@ export const getAllLeads = asyncHandler(async (req, res) => {
 export const getLead = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const lead = await Lead.findOne({ _id: id }).populate("documents");
-    console.log(lead);
 
     if (!lead) {
         res.status(404);
