@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const generateAadhaarOtp = async (id, aadhaar) => {
     try {
-        const data = { uniqueId: `1234`, uid: `${aadhaar}` };
+        const data = { uniqueId: `${id}`, uid: `${aadhaar}` };
 
         // const config = {
         //     method: "post",
@@ -43,15 +43,16 @@ export const verifyAadhaarOtp = async (
     fwdp,
     codeVerifier
 ) => {
-    const data = {
-        shareCode: id,
-        otp: otp,
-        transactionId: transactionId,
-        fwdp: fwdp,
-        codeVerifier: codeVerifier,
-        validateXml: true,
-    };
     try {
+        const data = {
+            shareCode: "1234",
+            otp: otp,
+            transactionId: `${transactionId}`,
+            fwdp: `${fwdp}`,
+            codeVerifier: `${codeVerifier}`,
+            validateXml: true,
+        };
+        console.log(data);
         const response = await axios.post(
             "https://svc.digitap.ai/ent/v3/kyc/submit-otp",
             data,
@@ -64,6 +65,6 @@ export const verifyAadhaarOtp = async (
         );
         return response.data; // Return the response data
     } catch (error) {
-        throw new Error(error?.data?.response_message || "An error occurred");
+        throw new Error(error?.data?.msg || "An error occurred");
     }
 };

@@ -56,18 +56,20 @@ export const verifyAadhaar = asyncHandler(async (req, res) => {
         codeVerifier
     );
 
-    // Check if the response status code is 422 which is for failed verification
-    if (!response.success) {
-        res.status(response.response_code);
-        throw new Error(response.response_message);
-    }
+    console.log("response: ", response);
 
-    const details = response.result;
-    // Respond with a success message
-    return res.json({
-        success: true,
-        details,
-    });
+    // Check if the response status code is 422 which is for failed verification
+    if (response.code === "200") {
+        const details = response.model;
+        // Respond with a success message
+        return res.json({
+            success: true,
+            details,
+        });
+    }
+    const code = parseInt(response.code, 10);
+    res.status(code);
+    throw new Error(response.msg);
 });
 
 // @desc Save aadhaar details once verified
@@ -78,7 +80,7 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
     const { details } = req.body;
 
     const name = details.name.split(" ");
-    const aadhaar_number = details.aadhaar_number.slice(-4);
+    const aadhaar_number = details.adharNumber.slice(-4);
     const uniqueId = `${name[0]}${aadhaar_number}`;
 
     const existingAadhaar = await AadhaarDetails.findOne({
@@ -96,6 +98,11 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
             details,
         });
     }
+    // Save Aaadhaar details in AadharDetails model
+    await AadhaarDetails.create({
+        uniqueId,
+        details,
+    });
 
     await Lead.findByIdAndUpdate(
         id,
@@ -103,11 +110,6 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
         { new: true }
     );
 
-    // Save Aaadhaar details in AadharDetails model
-    await AadhaarDetails.create({
-        uniqueId,
-        details,
-    });
     return res.json({
         success: true,
         details: details,

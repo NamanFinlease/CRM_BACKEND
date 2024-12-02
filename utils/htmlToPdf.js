@@ -2,9 +2,10 @@ import puppeteer from "puppeteer";
 import { uploadDocs } from "./docsUploadAndFetch.js";
 
 export async function htmlToPdf(lead, htmlResponse, fieldName) {
+    let browser;
     try {
         // Launch a new browser instance
-        const browser = await puppeteer.launch();
+        browser = await puppeteer.launch();
         const page = await browser.newPage();
 
         // Set the HTML content for the page
@@ -26,10 +27,15 @@ export async function htmlToPdf(lead, htmlResponse, fieldName) {
         });
 
         if (!result) {
-            return { success: false };
+            return { success: false, message: "Failed to upload PDF." };
         }
         return { success: true };
     } catch (error) {
-        console.error("Error while creating PDF or directory:", error);
+        return { success: false, error: error.message };
+    } finally {
+        // Ensure the browser is closed
+        if (browser) {
+            await browser.close();
+        }
     }
 }
