@@ -2,7 +2,7 @@ import axios from "axios";
 import { Parser } from "xml2js";
 import { htmlToPdf } from "./htmlToPdf.js";
 
-async function cibilPdf(lead) {
+async function cibilPdf(lead, docs) {
     const parser = new Parser();
 
     const dateOfBirthUTC = `${lead.dob}`;
@@ -156,7 +156,7 @@ async function cibilPdf(lead) {
         // fs.writeFileSync("report.html", htmlReportResponse);
         // console.log("HTML report saved successfully.");
 
-        const report = await htmlToPdf(lead, htmlReportResponse, "cibilReport");
+        const report = await htmlToPdf(docs, htmlReportResponse, "cibilReport");
 
         if (!report.success) {
             return { success: false, error: report.error };
