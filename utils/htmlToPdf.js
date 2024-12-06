@@ -1,11 +1,12 @@
 import puppeteer from "puppeteer";
+import { chromium } from "playwright";
 import { uploadDocs } from "./docsUploadAndFetch.js";
 
 export async function htmlToPdf(lead, htmlResponse, fieldName) {
     let browser;
     try {
         // Launch a new browser instance
-        browser = await puppeteer.launch();
+        browser = await chromium.launch();
         const page = await browser.newPage();
 
         // Set the HTML content for the page
