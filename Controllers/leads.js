@@ -430,6 +430,7 @@ export const verifyEmailOtp = asyncHandler(async (req, res) => {
 export const fetchCibil = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const lead = await Lead.findById(id);
+    const docs = await Documents.findById({ _id: lead.documents.toString() });
 
     // Replace all '/' with '-'
     // const normalizedDob = lead.dob.replace(/\//g, "-");
@@ -448,10 +449,11 @@ export const fetchCibil = asyncHandler(async (req, res) => {
 
     if (!lead.cibilScore) {
         const response = await equifax(lead);
-        // await cibilPdf(lead);
-        // console.log(pdfResult);
-
-        // const value = "720";
+        const report = await cibilPdf(lead, docs);
+        if (!report.success) {
+            res.status(400);
+            throw new Error(report.error);
+        }
         const value =
             response?.CCRResponse?.CIRReportDataLst[0]?.CIRReportData
                 ?.ScoreDetails[0]?.Value;
