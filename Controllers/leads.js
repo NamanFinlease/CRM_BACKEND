@@ -476,6 +476,7 @@ export const fetchCibil = asyncHandler(async (req, res) => {
 export const cibilReport = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const lead = await Lead.findById(id);
+    const docs = await Documents.findById({ _id: lead.documents.toString() });
 
     if (!lead) {
         res.status(404);
@@ -489,7 +490,7 @@ export const cibilReport = asyncHandler(async (req, res) => {
         );
     }
 
-    const report = await cibilPdf(lead);
+    const report = await cibilPdf(lead, docs);
     if (!report.success) {
         res.status(400);
         throw new Error({ error: report.error });

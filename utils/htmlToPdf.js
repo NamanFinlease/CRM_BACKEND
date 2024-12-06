@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 import { chromium } from "playwright";
 import { uploadDocs } from "./docsUploadAndFetch.js";
 
-export async function htmlToPdf(lead, htmlResponse, fieldName) {
+export async function htmlToPdf(docs, htmlResponse, fieldName) {
     let browser;
     try {
         // Launch a new browser instance
@@ -21,7 +21,7 @@ export async function htmlToPdf(lead, htmlResponse, fieldName) {
         await browser.close();
 
         // Use the utility function to upload the PDF buffer
-        const result = await uploadDocs(lead, null, {
+        const result = await uploadDocs(docs, null, {
             isBuffer: true,
             buffer: pdfBuffer,
             fieldName: fieldName,
