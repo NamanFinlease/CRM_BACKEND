@@ -72,7 +72,7 @@ async function cibilPdf(lead) {
                         <ns:DriverLicense></ns:DriverLicense>
                         <ns:PassportId></ns:PassportId>
                         <ns:RationCard></ns:RationCard>
-                        <ns:PANId>${lead.pan}</ns:PANId>
+                        <ns:PANId>AVZPC6217D</ns:PANId>
                         <ns:VoterId></ns:VoterId>
                         <ns:MobilePhone>${lead.mobile}</ns:MobilePhone>
                         <ns:RequestAccountDetails seq="1">
