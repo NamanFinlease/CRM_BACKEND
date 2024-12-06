@@ -21,7 +21,7 @@ export async function htmlToPdf(docs, htmlResponse, fieldName) {
         await browser.close();
 
         // Use the utility function to upload the PDF buffer
-        const result = await uploadDocs(docs, null, {
+        const result = await uploadDocs(docs, null, null, {
             isBuffer: true,
             buffer: pdfBuffer,
             fieldName: fieldName,
