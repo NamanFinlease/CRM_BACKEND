@@ -156,7 +156,12 @@ async function cibilPdf(lead) {
         // fs.writeFileSync("report.html", htmlReportResponse);
         // console.log("HTML report saved successfully.");
 
-        await htmlToPdf(lead, htmlReportResponse, "cibilReport");
+        const report = await htmlToPdf(lead, htmlReportResponse, "cibilReport");
+
+        if (!report.success) {
+            return { success: false, error: report.error };
+        }
+        return { success: true };
 
         // return htmlReportResponse;
     } catch (error) {
