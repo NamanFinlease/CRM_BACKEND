@@ -5,6 +5,13 @@ import { htmlToPdf } from "./htmlToPdf.js";
 async function cibilPdf(lead) {
     const parser = new Parser();
 
+    const dateOfBirthUTC = `${lead.dob}`;
+
+    // Convert to local date string (IST in your case)
+    const dateInIST = new Date(dateOfBirthUTC).toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata", // Specify Indian time zone
+    });
+
     const options = {
         method: "POST",
         url: "https://ists.equifax.co.in/creditreportws/CreditReportWSInquiry/v1.0?wsdl=null",
@@ -58,7 +65,7 @@ async function cibilPdf(lead) {
                         <ns:City></ns:City>
                         <ns:State>DL</ns:State>
                         <ns:Postal>110057</ns:Postal>
-                        <ns:DOB>${lead.dob}</ns:DOB>
+                        <ns:DOB>${dateInIST}</ns:DOB>
                         <ns:Gender>${lead.gender}</ns:Gender>
                         <ns:MaritalStatus></ns:MaritalStatus>
                         <ns:NationalIdCard></ns:NationalIdCard>
