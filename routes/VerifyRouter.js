@@ -14,6 +14,7 @@ import {
     emailVerify,
     verifyEmailOtp,
     fetchCibil,
+    cibilReport,
 } from "../Controllers/leads.js";
 import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
@@ -42,4 +43,5 @@ router.post("/pan-aadhaar-link/:id", panAadhaarLink);
 
 // fetch CIBIL
 router.get("/equifax/:id", protect, fetchCibil);
+router.get("/equifax-report/:id", protect, cibilReport);
 export default router;
