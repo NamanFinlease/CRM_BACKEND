@@ -493,7 +493,7 @@ export const cibilReport = asyncHandler(async (req, res) => {
     const report = await cibilPdf(lead, docs);
     if (!report.success) {
         res.status(400);
-        throw new Error({ error: report.error });
+        throw new Error(report.error);
     }
     return res.json({ success: true });
 });
