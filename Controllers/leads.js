@@ -448,7 +448,7 @@ export const fetchCibil = asyncHandler(async (req, res) => {
 
     if (!lead.cibilScore) {
         const response = await equifax(lead);
-        await cibilPdf(lead);
+        // await cibilPdf(lead);
         // console.log(pdfResult);
 
         // const value = "720";
@@ -468,4 +468,27 @@ export const fetchCibil = asyncHandler(async (req, res) => {
         return res.json({ success: true, value: value });
     }
     return res.json({ success: true, value: lead.cibilScore });
+});
+
+// @desc Fetch CIBIL Report
+// @route GET /api/verify/equifax-report/:id
+// @access Private
+export const cibilReport = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const lead = await Lead.findById(id);
+
+    if (!lead) {
+        res.status(404);
+        throw new Error("Lead not found!!!");
+    }
+
+    if (lead.screenerId.toString() !== req.employee._id.toString()) {
+        res.status(404);
+        throw new Error(
+            "You are not authorized to fetch CIBIL for this lead!!!"
+        );
+    }
+
+    const report = await cibilPdf(lead);
+    return res.json({ report });
 });
