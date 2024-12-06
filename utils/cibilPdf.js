@@ -16,10 +16,10 @@ async function cibilPdf(lead) {
                 <InquiryRequest xmlns="http://services.equifax.com/eport/ws/schemas/1.0">
                     <ns:RequestHeader>
                         <ns:CustomerId>9757</ns:CustomerId>
-                        <ns:UserId>STS_TSTNAM</ns:UserId>
-                        <ns:Password>V2*Pdhbr</ns:Password>
-                        <ns:MemberNumber>007FZ03452</ns:MemberNumber>
-                        <ns:SecurityCode>6XR</ns:SecurityCode>
+                        <ns:UserId>STS_NAMCCR</ns:UserId>
+                        <ns:Password>W3#QeicsB</ns:Password>
+                        <ns:MemberNumber>007FZ03434</ns:MemberNumber>
+                        <ns:SecurityCode>2DN</ns:SecurityCode>
                         <ns:ProductVersion>4.6</ns:ProductVersion>
                         <ns:ReportFormat>XML</ns:ReportFormat>
                         <ns:ProductCode>CCR</ns:ProductCode>
