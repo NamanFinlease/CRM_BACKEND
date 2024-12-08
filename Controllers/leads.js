@@ -448,7 +448,12 @@ export const fetchCibil = asyncHandler(async (req, res) => {
 
     if (!lead.cibilScore) {
         const response = await equifax(lead);
-        // await cibilPdf(lead);
+        const report = await cibilPdf(lead);
+
+        if (!report) {
+            res.status(400);
+            throw new Error(report.error);
+        }
         // console.log(pdfResult);
 
         // const value = "720";
