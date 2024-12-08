@@ -31,11 +31,10 @@ export const generateSanctionLetter = async (
 
         // Save the sanction letter in S3
         const result = await htmlToPdf(lead, htmlToSend);
-        console.log(result);
 
         // Create form-data and append the PDF buffer
         const formData = new FormData();
-        formData.append("file", Buffer.from(result.pdfBuffer), {
+        formData.append("file", Buffer.from(result), {
             filename: `sanction_${fullname}.pdf`,
             contentType: "application/pdf",
         });
@@ -64,8 +63,6 @@ export const generateSanctionLetter = async (
             }
         );
 
-        console.log(eSignStepOne);
-
         if (eSignStepOne.data.code === "200") {
             const eSignStepTwo = await axios.put(
                 `${eSignStepOne.data.model.uploadUrl}`,
@@ -76,7 +73,6 @@ export const generateSanctionLetter = async (
                     },
                 }
             );
-            console.log(eSignStepTwo);
 
             const eSignStepThree = await axios.post(
                 "https://api.digitap.ai/clickwrap/v1/send/sign-in-link",
@@ -91,7 +87,6 @@ export const generateSanctionLetter = async (
                     },
                 }
             );
-            console.log(eSignStepThree);
             return {
                 success: true,
                 message: "E-sign link sent!!",

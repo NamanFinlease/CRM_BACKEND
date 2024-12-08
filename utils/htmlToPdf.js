@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import { chromium } from "playwright";
 import { uploadDocs } from "./docsUploadAndFetch.js";
 
@@ -9,18 +8,15 @@ export async function htmlToPdf(docs, htmlResponse, fieldName) {
         browser = await chromium.launch();
         const page = await browser.newPage();
 
-        // Set the HTML content for the page
-        await page.setContent(htmlResponse[0]);
-
-        // Generate a PDF from the HTML content
-        const pdfBuffer = await page.pdf({
-            format: "A4", // Page format
-        });
-
-        //   close the browser
-        await browser.close();
-
         if (fieldName === "cibilReport") {
+            // Set the HTML content for the page
+            await page.setContent(htmlResponse[0]);
+
+            // Generate a PDF from the HTML content
+            const pdfBuffer = await page.pdf({
+                format: "A4", // Page format
+            });
+
             // Use the utility function to upload the PDF buffer
             const result = await uploadDocs(docs, null, null, {
                 isBuffer: true,
@@ -33,28 +29,23 @@ export async function htmlToPdf(docs, htmlResponse, fieldName) {
             }
             return { success: true, message: "File uploaded." };
         }
+        // Set the HTML content for the page
+        await page.setContent(htmlResponse);
 
-        // Define the file path where the PDF will be saved temporarily
-        const tempFilePath = path.join(__dirname, "temp_sanction_letter.pdf");
+        // Generate a PDF from the HTML content
+        const pdfBuffer = await page.pdf({
+            width: "8.5in", // Double the standard width
+            height: "14in", // Double the standard height
+            margin: {
+                top: "0.2in",
+                bottom: "0.2in",
+                left: "0.2in",
+                right: "0.2in",
+            },
+        });
 
-        // Save the PDF to a file
-        fs.writeFileSync(tempFilePath, pdfBuffer);
-        console.log(`PDF saved to: ${tempFilePath}`);
-
-        // Set a timeout to delete the file after the specified time (in milliseconds)
-        setTimeout(() => {
-            fs.unlink(tempFilePath, (err) => {
-                if (err) {
-                    console.error("Error deleting file:", err);
-                } else {
-                    console.log(
-                        `File deleted after ${timeoutMinutes} minutes.`
-                    );
-                }
-            });
-        }, 30 * 60 * 1000);
-
-        return tempFilePath;
+        // Return the PDF buffer
+        return pdfBuffer;
 
         // Use the utility function to upload the PDF buffer
         // const result = await uploadDocs(lead, null, {

@@ -56,8 +56,6 @@ export const verifyAadhaar = asyncHandler(async (req, res) => {
         codeVerifier
     );
 
-    console.log("response: ", response);
-
     // Check if the response status code is 422 which is for failed verification
     if (response.code === "200") {
         const details = response.model;
