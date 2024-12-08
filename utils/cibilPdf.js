@@ -152,18 +152,16 @@ async function cibilPdf(lead, docs) {
                 "sch:InquiryResponse"
             ][0]["sch:HtmlReportResponse"][0]["sch:Content"];
 
-        return htmlReportResponse;
-
         // // Save the extracted HTML to a file
         // fs.writeFileSync("report.html", htmlReportResponse);
         // console.log("HTML report saved successfully.");
 
-        // const report = await htmlToPdf(docs, htmlReportResponse, "cibilReport");
+        const report = await htmlToPdf(docs, htmlReportResponse, "cibilReport");
 
-        // if (!report.success) {
-        //     return { success: false, error: report.error };
-        // }
-        // return { success: true };
+        if (!report.success) {
+            return { success: false, error: report.error };
+        }
+        return { success: true };
 
         // return htmlReportResponse;
     } catch (error) {
