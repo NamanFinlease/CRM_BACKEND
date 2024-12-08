@@ -17,7 +17,7 @@ export const generateAadhaarLink = asyncHandler(async (req, res) => {
     const { personalEmail, fName, mName, lName, _id } = lead
     const token = jwt.sign({ _id }, process.env.AADHAAR_LINK_SECRET, { expiresIn: "1h" })
     const customerName = `${fName}${mName ? ` ${mName}` : ``} ${lName}`
-    await sendEmail(personalEmail, customerName, `Aadhaar verification`, _id, token)
+    await sendEmail(personalEmail, customerName, `Aadhaar verification`, token)
 
     res.json({
         success: true,
