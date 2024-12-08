@@ -2,7 +2,8 @@ import axios from "axios";
 
 const apiKey = process.env.ZOHO_APIKEY;
 
-async function sendEmail(recipient, recipientName, subject, otp) {
+async function sendEmail(recipient, recipientName, subject,token) {
+    const link = `http://localhost:3000/verify-aadhaar/${token}`
     try {
         const options = {
             method: "POST",
@@ -24,7 +25,7 @@ async function sendEmail(recipient, recipientName, subject, otp) {
                     },
                 ],
                 subject: subject,
-                htmlbody: `<p>Your email verification OTP is <strong>${otp}</strong>.</p>`,
+                htmlbody: `<p>To verify your aadhaar click on <strong>${link}</strong>.</p>`,
             }),
         };
 

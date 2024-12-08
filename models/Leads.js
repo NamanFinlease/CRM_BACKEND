@@ -88,6 +88,7 @@ const leadSchema = new mongoose.Schema(
         emailOtp: Number,
         emailOtpExpiredAt: { type: Date },
         isAadhaarVerified: { type: Boolean, default: false },
+        isAadhaarDetailsSaved: { type: Boolean, default: false },
         isPanVerified: { type: Boolean, default: false },
         isEmailVerified: {
             type: Boolean,

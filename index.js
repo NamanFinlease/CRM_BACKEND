@@ -4,6 +4,7 @@ import cors from "cors"; // Import cors
 import connectDB from "./config/db.js";
 import "dotenv/config.js";
 import morgan from "morgan";
+import { join } from 'path';
 import accountRouter from "./routes/AccountRouter.js";
 import applicantRouter from "./routes/ApplicantRouter.js";
 import applicationRouter from "./routes/ApplicationRouter.js";
@@ -41,13 +42,31 @@ var corsOption = {
 };
 app.use(cors(corsOption));
 
+
 // Logging middleware (optional)
 app.use(morgan("dev")); // Log HTTP requests
+
+// Serving static file..............
+app.use(express.static(join(process.cwd(), 'public')));
+// Set the view engine to EJS
+app.set('view engine', 'ejs');
+
+// Set the directory for EJS templates
+app.set('views', join(process.cwd(), 'views'));
 
 // Routes
 app.get("/", (req, res) => {
     res.send("API is running.......");
 });
+app.get(`/verify-aadhaar/:id`, (req, res) => {
+    res.render('otpRequest',);
+  });
+app.get(`/otp-page/:id`, (req, res) => {
+    res.render('otpInput',);
+  });
+app.get(`/otp-success`, (req, res) => {
+    res.render('otpSuccess',);
+  });
 
 app.use("/api/accounts", accountRouter); // Use the account routes
 app.use("/api/applications", applicationRouter); // Use the application routes

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enter OTP</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="otp-container">
+    <h1>OTP Verification</h1>
+    <p>Please enter the 6-digit OTP sent to your registered mobile number associated with aadhhar **** **** 1234.</p>
+    <form id="otpForm" action="/submit-otp" method="POST">
+      <div class="otp-input">
+        <input type="text" name="digit1" maxlength="1" required>
+        <input type="text" name="digit2" maxlength="1" required>
+        <input type="text" name="digit3" maxlength="1" required>
+        <input type="text" name="digit4" maxlength="1" required>
+        <input type="text" name="digit5" maxlength="1" required>
+        <input type="text" name="digit6" maxlength="1" required>
+      </div>
+      <div class="buttons">
+        <button type="submit" class="submit-btn">Submit</button>
+        <button type="button" class="resend-btn" id="resendBtn" onclick="resendOTP()">Resend OTP</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="/js/aadhaar.js"></script>
+</body>
+</html>

@@ -3,6 +3,8 @@ import {
     aadhaarOtp,
     verifyAadhaar,
     saveAadhaarDetails,
+    generateAadhaarLink,
+    checkAadhaarDetails,
 } from "../Controllers/aadhaarController.js";
 import { bankVerification } from "../Controllers/applicantPersonalDetails.js";
 import {
@@ -16,19 +18,26 @@ import {
     fetchCibil,
     cibilReport,
 } from "../Controllers/leads.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { aadhaarMiddleware, protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // Bank Verify
 router.route("/bank/:id").post(bankVerification);
 
+// send Aadhaar verification mail
+router.route("/generate-link/:id").get(generateAadhaarLink);
+
 // aadhaar verify
 // router.post('/aadhaar/:id');
 router
     .route("/aadhaar/:id")
-    .get(protect, aadhaarOtp)
-    .post(protect, saveAadhaarDetails);
-router.post("/aadhaar-otp/", verifyAadhaar);
+    .get(aadhaarMiddleware, aadhaarOtp)
+// Aadhaar OTP submitted by Borrower
+router.post("/submit-aadhaar-otp/:id", aadhaarMiddleware, saveAadhaarDetails);
+router
+    .route("/verifyAadhaar/:id")
+    .get(protect, checkAadhaarDetails)
+    .patch(protect, verifyAadhaar);
 
 // email verify
 router.patch("/email/:id", protect, emailVerify);

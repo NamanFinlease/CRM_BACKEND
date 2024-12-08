@@ -1,6 +1,7 @@
 import asyncHandler from "./asyncHandler.js";
 import jwt from "jsonwebtoken";
 import Employees from "../models/Employees.js";
+import Lead from "../models/Leads.js";
 
 // Protected Routes
 const protect = asyncHandler(async (req, res, next) => {
@@ -64,6 +65,38 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 });
 
+const aadhaarMiddleware = asyncHandler(async (req, res, next) => {
+    const { id } = req.params; // Extract the token (ID) from the request parameters
+
+    if (!id) {
+        // Return an error if no token is provided
+        res.status(401);
+        throw new Error("Not Authorized! No token found");
+    }
+
+    try {
+        // Decode the token using the secret
+        const decoded = jwt.verify(id, process.env.AADHAAR_LINK_SECRET);
+
+        // Fetch the user lead using the decoded token's `_id`
+        const userLead = await Lead.findById(decoded._id);
+
+        if (!userLead) {
+            res.status(404);
+            throw new Error("User lead not found");
+        }
+
+        // Attach the lead ID to the `req` object for downstream use
+        req.userLeadId = userLead._id;
+
+        // Call the next middleware or route handler
+        next();
+    } catch (error) {
+        res.status(401);
+        throw new Error("Not Authorized! Invalid token");
+    }
+});
+
 // Admin Route
 const admin = (req, res, next) => {
     if (req.activeRole !== "admin") {
@@ -73,4 +106,4 @@ const admin = (req, res, next) => {
     next();
 };
 
-export { protect, admin };
+export { protect, admin,aadhaarMiddleware };
