@@ -9,7 +9,6 @@ import Documents from "../models/Documents.js";
 
 export const uploadDocs = async (docs, files, remarks, options = {}) => {
     const { isBuffer = false, buffer, fieldName = "" } = options;
-    console.log("option: ", options);
 
     // Prepare an array to store all upload promises
     // const uploadPromises = [];
@@ -28,7 +27,6 @@ export const uploadDocs = async (docs, files, remarks, options = {}) => {
         const existingDocIndex = docs.document.singleDocuments.findIndex(
             (doc) => doc.type === fieldName
         );
-        console.log("exisiting docs: ", existingDocIndex);
 
         if (existingDocIndex !== -1) {
             // Delete the old file and upload the new file
@@ -134,8 +132,6 @@ export const uploadDocs = async (docs, files, remarks, options = {}) => {
 
     // Add multiple document updates to the lead document
     for (const [field, document] of Object.entries(multipleDocUpdates)) {
-        console.log(`field: ${field} and docs: ${document}`);
-
         if (document.length > 0) {
             docs.document.multipleDocuments[field].push(...document);
         }

@@ -20,17 +20,52 @@ export async function htmlToPdf(docs, htmlResponse, fieldName) {
         //   close the browser
         await browser.close();
 
-        // Use the utility function to upload the PDF buffer
-        const result = await uploadDocs(docs, null, null, {
-            isBuffer: true,
-            buffer: pdfBuffer,
-            fieldName: fieldName,
-        });
+        if (fieldName === "cibilReport") {
+            // Use the utility function to upload the PDF buffer
+            const result = await uploadDocs(docs, null, null, {
+                isBuffer: true,
+                buffer: pdfBuffer,
+                fieldName: fieldName,
+            });
 
-        if (!result) {
-            return { success: false, message: "Failed to upload PDF." };
+            if (!result) {
+                return { success: false, message: "Failed to upload PDF." };
+            }
+            return { success: true, message: "File uploaded." };
         }
-        return { success: true };
+
+        // Define the file path where the PDF will be saved temporarily
+        const tempFilePath = path.join(__dirname, "temp_sanction_letter.pdf");
+
+        // Save the PDF to a file
+        fs.writeFileSync(tempFilePath, pdfBuffer);
+        console.log(`PDF saved to: ${tempFilePath}`);
+
+        // Set a timeout to delete the file after the specified time (in milliseconds)
+        setTimeout(() => {
+            fs.unlink(tempFilePath, (err) => {
+                if (err) {
+                    console.error("Error deleting file:", err);
+                } else {
+                    console.log(
+                        `File deleted after ${timeoutMinutes} minutes.`
+                    );
+                }
+            });
+        }, 30 * 60 * 1000);
+
+        return tempFilePath;
+
+        // Use the utility function to upload the PDF buffer
+        // const result = await uploadDocs(lead, null, {
+        //     isBuffer: true,
+        //     buffer: pdfBuffer,
+        //     fieldName: fieldName,
+        // });
+
+        // if (!result) {
+        //     return { success: false, message: "Failed to upload PDF." };
+        // }
     } catch (error) {
         return { success: false, error: error.message };
     } finally {

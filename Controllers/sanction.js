@@ -233,6 +233,8 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 `${sanction.application.applicant.personalDetails.personalEmail}`
             );
 
+            console.log(emailResponse);
+
             // Return a unsuccessful response
             if (!emailResponse.success) {
                 return res.json({ success: false });
