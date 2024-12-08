@@ -252,12 +252,7 @@ export const updateApplicantBankDetails = asyncHandler(async (req, res) => {
         throw new Error("No applicant found!!!");
     }
 
-    const verify = await verifyBank(
-        beneficiaryName,
-        bankAccNo,
-        ifscCode,
-        applicant
-    );
+    const verify = await verifyBank(beneficiaryName, bankAccNo, ifscCode);
 
     if (!verify.success) {
         res.status(400);
