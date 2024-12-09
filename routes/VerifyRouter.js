@@ -18,12 +18,14 @@ import {
     fetchCibil,
     cibilReport,
     mobileGetOtp,
+    verifyOtp
 } from "../Controllers/leads.js";
 import { aadhaarMiddleware, protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // Mobile Verify
 router.get("/mobile/get-otp", mobileGetOtp);
+router.post("/mobile/verify-otp", verifyOtp);
 
 // Bank Verify
 router.route("/bank/:id").post(bankVerification);
