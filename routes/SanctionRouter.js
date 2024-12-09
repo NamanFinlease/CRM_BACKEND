@@ -11,6 +11,7 @@ import {
     sanctioned,
     sanctionedReport,
 } from "../Controllers/sanction.js";
+import { eSignWebhook } from "../Controllers/eSignController.js";
 import { sentBack } from "../Controllers/sentBack.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -20,6 +21,7 @@ router.get("/pending", protect, getPendingSanctions);
 router.get("/recommended", protect, recommendedApplications);
 router.get("/hold", protect, getHold);
 router.get("/rejected", protect, getRejected);
+router.post("/esign/success", eSignWebhook);
 router.get("/:id", protect, getSanction);
 router.route("/hold/:id").patch(protect, onHold);
 router.patch("/unhold/:id", protect, unHold);
