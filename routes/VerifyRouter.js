@@ -17,9 +17,13 @@ import {
     verifyEmailOtp,
     fetchCibil,
     cibilReport,
+    mobileGetOtp,
 } from "../Controllers/leads.js";
 import { aadhaarMiddleware, protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
+
+// Mobile Verify
+router.get("/mobile/get-otp", mobileGetOtp);
 
 // Bank Verify
 router.route("/bank/:id").post(bankVerification);
@@ -29,9 +33,7 @@ router.route("/generate-link/:id").get(generateAadhaarLink);
 
 // aadhaar verify
 // router.post('/aadhaar/:id');
-router
-    .route("/aadhaar/:id")
-    .get(aadhaarMiddleware, aadhaarOtp)
+router.route("/aadhaar/:id").get(aadhaarMiddleware, aadhaarOtp);
 // Aadhaar OTP submitted by Borrower
 router.post("/submit-aadhaar-otp/:id", aadhaarMiddleware, saveAadhaarDetails);
 router

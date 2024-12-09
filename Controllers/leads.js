@@ -7,6 +7,8 @@ import { postLogs } from "./logs.js";
 import { applicantDetails } from "./applicantPersonalDetails.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateRandomNumber from "../utils/generateRandomNumbers.js";
+import { otpSent } from "../utils/smsGateway.js";
+import { otpVerified } from "../utils/smsGateway.js";
 import equifax from "../utils/fetchCibil.js";
 import { checkApproval } from "../utils/checkApproval.js";
 import { postCamDetails } from "./application.js";
@@ -500,4 +502,17 @@ export const cibilReport = asyncHandler(async (req, res) => {
     // return res.json({ success: true });
 
     return report;
+});
+
+// @desc API for mobile verification
+// @route GET /api/verify/mobile/get-otp
+// @access Public
+export const mobileGetOtp = asyncHandler(async (req, res) => {
+    const { fName, lName, mobile } = req.body;
+    const otp = generateRandomNumber();
+    const result = await otpSent(mobile, fName, lName, otp);
+
+    if (result.data.ErrorMessage === "Success") {
+        return res.json({ success: true, message: "OTP sent successfully!!" });
+    }
 });
