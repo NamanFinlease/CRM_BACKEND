@@ -14,15 +14,18 @@ const protect = asyncHandler(async (req, res, next) => {
                 "-password"
             );
 
-            if (!req.employee.isActive) {
-                res.status(401);
-                throw new Error("Your account is deactivated");
-            }
+            console.log(req.employee);
 
             if (!req.employee) {
                 res.status(404);
                 throw new Error("Employee not found");
             }
+
+            if (!req.employee.isActive) {
+                res.status(401);
+                throw new Error("Your account is deactivated");
+            }
+
             const rolesHierarchy = {
                 admin: ["admin"],
                 supervisor: ["supervisor"],
