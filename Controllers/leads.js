@@ -506,31 +506,33 @@ export const cibilReport = asyncHandler(async (req, res) => {
 });
 
 // @desc API for mobile verification
-// @route GET /api/verify/mobile/get-otp
+// @route POST /api/verify/mobile/get-otp
 // @access Public
 export const mobileGetOtp = asyncHandler(async (req, res) => {
     const { fName, lName, mobile } = req.body;
-  
+
     // Generate a new random OTP
     const otp = generateRandomNumber();
-  
+
     // Send OTP via the OTP service
     const result = await otpSent(mobile, fName, lName, otp);
-  
+
     if (result.data.ErrorMessage === "Success") {
-      // Update or create the OTP record for the mobile number
-      await Otp.findOneAndUpdate(
-        { mobile }, // Search by mobile number
-        { fName, lName, otp, createdAt: Date.now() }, // Update data
-        { upsert: true, new: true } // Create a new record if not found
-      );
-  
-      return res.json({ success: true, message: "OTP sent successfully!!" });
+        // Update or create the OTP record for the mobile number
+        await Otp.findOneAndUpdate(
+            { mobile }, // Search by mobile number
+            { fName, lName, otp, createdAt: Date.now() }, // Update data
+            { upsert: true, new: true } // Create a new record if not found
+        );
+
+        return res.json({ success: true, message: "OTP sent successfully!!" });
     }
-  
-    return res.status(500).json({ success: false, message: "Failed to send OTP" });
-  });
-    
+
+    return res
+        .status(500)
+        .json({ success: false, message: "Failed to send OTP" });
+});
+
 /**
  * @desc    Verify OTP
  * @route   POST /api/verify/mobile/verify-otp
@@ -538,38 +540,38 @@ export const mobileGetOtp = asyncHandler(async (req, res) => {
  */
 export const verifyOtp = asyncHandler(async (req, res) => {
     const { mobile, otp } = req.body;
-  
+
     // Check if both mobile and OTP are provided
     if (!mobile && !otp) {
-      return res.status(400).json({
-        success: false,
-        message: "Mobile number and OTP are required.",
-      });
+        return res.status(400).json({
+            success: false,
+            message: "Mobile number and OTP are required.",
+        });
     }
-  
+
     // Find the OTP record in the database
     const otpRecord = await Otp.findOne({ mobile });
-  
+
     // Check if the record exists
     if (!otpRecord) {
-      return res.status(404).json({
-        success: false,
-        message: "No OTP found for this mobile number. Please request a new OTP.",
-      });
+        return res.status(404).json({
+            success: false,
+            message:
+                "No OTP found for this mobile number. Please request a new OTP.",
+        });
     }
-  
+
     // Verify if the provided OTP matches the stored OTP
     if (otpRecord.otp !== otp) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid OTP. Please try again.",
-      });
+        return res.status(401).json({
+            success: false,
+            message: "Invalid OTP. Please try again.",
+        });
     }
-  
+
     // OTP matches, verification successful
     return res.json({
-      success: true,
-      message: "OTP verified successfully!",
+        success: true,
+        message: "OTP verified successfully!",
     });
-  });
-  
+});
