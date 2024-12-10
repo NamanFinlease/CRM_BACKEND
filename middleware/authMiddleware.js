@@ -14,8 +14,6 @@ const protect = asyncHandler(async (req, res, next) => {
                 "-password"
             );
 
-            console.log(req.employee);
-
             if (!req.employee) {
                 res.status(404);
                 throw new Error("Employee not found");

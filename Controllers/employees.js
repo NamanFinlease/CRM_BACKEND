@@ -66,6 +66,10 @@ export const login = asyncHandler(async (req, res) => {
 
     // Find the user by email
     const employee = await Employee.findOne({ email });
+    if (!employee.isActive) {
+        res.status(401);
+        throw new Error("Your account has been deactivated!!");
+    }
     if (employee && (await employee.matchPassword(password))) {
         generateToken(res, employee._id);
 
