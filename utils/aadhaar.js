@@ -1,9 +1,7 @@
 // config/otpUtil.js
 import axios from "axios";
 
-
 export const generateAadhaarOtp = async (id, aadhaar) => {
-
     try {
         // Construct the request payload
         const data = {
@@ -31,7 +29,7 @@ export const generateAadhaarOtp = async (id, aadhaar) => {
         return { success: true, data: response.data };
     } catch (error) {
         // Log and handle errors
-        console.error('Error generating Aadhaar OTP:', error.message || error);
+        console.error("Error generating Aadhaar OTP:", error.message || error);
 
         // Return a custom error message
         return {
@@ -41,15 +39,20 @@ export const generateAadhaarOtp = async (id, aadhaar) => {
     }
 };
 
-
 export const verifyAadhaarOtp = async (
-    id,
     otp,
     transactionId,
     fwdp,
     codeVerifier
 ) => {
-    const data = { shareCode:"1234",validateXml:true, otp, transactionId, fwdp, codeVerifier };
+    const data = {
+        shareCode: "1234",
+        validateXml: true,
+        otp,
+        transactionId,
+        fwdp,
+        codeVerifier,
+    };
     try {
         const response = await axios.post(
             "https://svc.digitap.ai/ent/v3/kyc/submit-otp",

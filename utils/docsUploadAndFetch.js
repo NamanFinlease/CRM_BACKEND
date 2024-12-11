@@ -173,7 +173,6 @@ export const getDocs = async (docs, docType, docId) => {
     }
 
     if (!document) {
-        res.status(404);
         throw new Error(`Document of type ${docType} not found`);
     }
 

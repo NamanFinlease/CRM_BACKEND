@@ -95,26 +95,65 @@ export const activeLeads = asyncHandler(async (req, res) => {
             // },
         ];
 
-        const results = await Closed.aggregate(pipeline);
+        // const results = await Closed.aggregate(pipeline);
+
+        const activeLeads = await Closed.find(
+            {
+                "data.isActive": true, // Ensure at least one element in `data` has isActive: true
+                "data.isDisbursed": true, // Ensure at least one element in `data` has isDisbursed: true
+                "data.isClosed": false, // Ensure no matching element is closed
+            },
+            {
+                pan: 1, // Include `pan` in the output
+                data: {
+                    $elemMatch: {
+                        isActive: true,
+                        isDisbursed: true,
+                        isClosed: false,
+                    },
+                },
+            }
+        )
+            .sort({ updatedAt: -1 })
+            .populate({
+                path: "data.disbursal",
+                populate: {
+                    path: "sanction", // Populating the 'sanction' field in Disbursal
+                    populate: [
+                        { path: "approvedBy" },
+                        {
+                            path: "application",
+                            populate: [
+                                {
+                                    path: "lead",
+                                    populate: { path: "documents" },
+                                }, // Nested populate for lead and documents
+                                { path: "creditManagerId" }, // Populate creditManagerId
+                                { path: "recommendedBy" },
+                            ],
+                        },
+                    ],
+                },
+            });
 
         // Populate the filtered data
-        const activeLeads = await Closed.populate(results, {
-            path: "data.disbursal",
-            populate: {
-                path: "sanction", // Populating the 'sanction' field in Disbursal
-                populate: [
-                    { path: "approvedBy" },
-                    {
-                        path: "application",
-                        populate: [
-                            { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
-                            { path: "creditManagerId" }, // Populate creditManagerId
-                            { path: "recommendedBy" },
-                        ],
-                    },
-                ],
-            },
-        });
+        // const activeLeads = await Closed.populate(results, {
+        //     path: "data.disbursal",
+        //     populate: {
+        //         path: "sanction", // Populating the 'sanction' field in Disbursal
+        //         populate: [
+        //             { path: "approvedBy" },
+        //             {
+        //                 path: "application",
+        //                 populate: [
+        //                     { path: "lead", populate: { path: "documents" } }, // Nested populate for lead and documents
+        //                     { path: "creditManagerId" }, // Populate creditManagerId
+        //                     { path: "recommendedBy" },
+        //                 ],
+        //             },
+        //         ],
+        //     },
+        // });
 
         const totalActiveLeads = await Closed.countDocuments({
             "data.isActive": true,
