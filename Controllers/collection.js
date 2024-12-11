@@ -107,29 +107,22 @@ export const activeLeads = asyncHandler(async (req, res) => {
             {
                 $addFields: {
                     data: {
-                        $arrayElemAt: [
-                            {
-                                $filter: {
-                                    input: "$data",
-                                    as: "item",
-                                    cond: {
-                                        $and: [
-                                            { $eq: ["$$item.isActive", true] },
-                                            {
-                                                $eq: [
-                                                    "$$item.isDisbursed",
-                                                    true,
-                                                ],
-                                            },
-                                            { $eq: ["$$item.isClosed", false] },
-                                        ],
-                                    },
-                                },
+                        $filter: {
+                            input: "$data",
+                            as: "item",
+                            cond: {
+                                $and: [
+                                    { $eq: ["$$item.isActive", true] },
+                                    { $eq: ["$$item.isDisbursed", true] },
+                                    { $eq: ["$$item.isClosed", false] },
+                                ],
                             },
-                            0,
-                        ],
+                        },
                     },
                 },
+            },
+            {
+                $unwind: "$data", // Ensure `data` becomes a single object, not an array
             },
             {
                 $lookup: {
