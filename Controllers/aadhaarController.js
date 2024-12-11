@@ -3,26 +3,25 @@ import Lead from "../models/Leads.js";
 import { generateAadhaarOtp, verifyAadhaarOtp } from "../utils/aadhaar.js";
 import AadhaarDetails from "../models/AadhaarDetails.js";
 import sendEmail from "../utils/sendEmail.js";
-import jwt from "jsonwebtoken"
-
+import jwt from "jsonwebtoken";
 
 // @desc Generate Aadhaar OTP.
 // @route GET /api/verify/mail/:id
 // @access Private
 export const generateAadhaarLink = asyncHandler(async (req, res) => {
-
     const { id } = req.params;
 
     const lead = await Lead.findById(id);
-    const { personalEmail, fName, mName, lName, _id } = lead
-    const token = jwt.sign({ _id }, process.env.AADHAAR_LINK_SECRET, { expiresIn: "1h" })
-    const customerName = `${fName}${mName ? ` ${mName}` : ``} ${lName}`
-    await sendEmail(personalEmail, customerName, `Aadhaar verification`, token)
+    const { personalEmail, fName, mName, lName, _id } = lead;
+    const token = jwt.sign({ _id }, process.env.AADHAAR_LINK_SECRET, {
+        expiresIn: "1h",
+    });
+    const customerName = `${fName}${mName ? ` ${mName}` : ``} ${lName}`;
+    await sendEmail(personalEmail, customerName, `Aadhaar verification`, token);
 
     res.json({
         success: true,
         message: `Email sent to Applicant.`,
-
     });
 });
 
@@ -65,9 +64,7 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
     // Check if both OTP and request ID are provided
     if (!otp || !transactionId || !fwdp || !codeVerifier) {
         res.status(400);
-        throw new Error(
-            "Missing fields.",
-        );
+        throw new Error("Missing fields.");
     }
 
     // Fetch Aaadhaar details using the provided OTP and request ID
@@ -84,7 +81,7 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
         const details = response.model;
         const name = details.name.split(" ");
         const aadhaarNumber = details.adharNumber.slice(-4);
-        const uniqueId = `${name[0]}${aadhaarNumber}`;
+        const uniqueId = `${name[0].toLowerCase()}${aadhaarNumber}`;
 
         const existingAadhaar = await AadhaarDetails.findOne({
             uniqueId: uniqueId,
@@ -182,35 +179,30 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
 //     });
 // });
 
-
 // @desc Generate Aadhaar OTP.
 // @route GET /api/verify/verifyAadhaar/:id
 // @access Private
 export const checkAadhaarDetails = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
 
     const lead = await Lead.findById(id);
-    const aadhaar = lead?.aadhaar;
-    const uniqueId = `${lead.fName}${aadhaar.slice(-4)}`
-    const data = await AadhaarDetails.findOne({uniqueId})
-
-  
+    const { fName, aadhaar } = lead;
+    const uniqueId = `${fName.toLowerCase()}${aadhaar.slice(-4)}`;
+    const data = await AadhaarDetails.findOne({ uniqueId });
 
     // res.render('otpRequest',);
 
     res.json({
         success: true,
-        data
-        
+        data,
     });
 });
-
 
 // @desc Verify Aadhaar OTP to fetch Aadhaar details
 // @route PATCH /api/verify/verify/:id
 // @access Private
 export const verifyAadhaar = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
 
     await Lead.findByIdAndUpdate(
         id,
@@ -220,10 +212,4 @@ export const verifyAadhaar = asyncHandler(async (req, res) => {
     return res.json({
         success: true,
     });
-
-  
-
- 
 });
-
-
