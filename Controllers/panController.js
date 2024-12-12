@@ -49,7 +49,12 @@ export const savePanDetails = asyncHandler(async (req, res) => {
 
     const pan = data.pan;
 
-    const existingPan = await PanDetails.findOne({ "data.PAN": pan });
+    const existingPan = await PanDetails.findOne({
+        $or: [
+            { "data.PAN": pan }, // Check if data.PAN matches
+            { "data.pan": pan }, // Check if data.pan matches
+        ],
+    });
 
     if (existingPan) {
         await Lead.findByIdAndUpdate(
