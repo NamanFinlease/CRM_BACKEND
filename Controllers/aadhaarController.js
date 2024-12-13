@@ -12,8 +12,8 @@ export const generateAadhaarLink = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
     const lead = await Lead.findById(id);
-    const { personalEmail, fName, mName, lName, _id } = lead;
-    const token = jwt.sign({ _id }, process.env.AADHAAR_LINK_SECRET, {
+    const { personalEmail, fName, mName, lName } = lead;
+    const token = jwt.sign({ id }, process.env.AADHAAR_LINK_SECRET, {
         expiresIn: "1h",
     });
     const customerName = `${fName}${mName ? ` ${mName}` : ``} ${lName}`;
@@ -69,7 +69,6 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
 
     // Fetch Aaadhaar details using the provided OTP and request ID
     const response = await verifyAadhaarOtp(
-        id,
         otp,
         transactionId,
         fwdp,

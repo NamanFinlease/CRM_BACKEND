@@ -4,6 +4,7 @@ const apiKey = process.env.ZOHO_APIKEY;
 
 async function sendEmail(recipient, recipientName, subject, token) {
     const link = `https://api.fintechbasket.com/verify-aadhaar/${token}`;
+    // const link = `http://localhost:3000/verify-aadhaar/${token}`;
     try {
         const options = {
             method: "POST",
