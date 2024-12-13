@@ -97,10 +97,10 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
 });
 
 // @desc Verify Pan.
-// @route GET /api/verify/pan/
+// @route GET /api/mobile/verify/pan/
 // @access Private
 export const getPanDetails = asyncHandler(async (req, res) => {
-    const { pan } = req.body;
+    const { name, pan } = req.body;
 
     // Validate that aaadhaar is present in the leads
     if (!pan) {
@@ -124,14 +124,24 @@ export const getPanDetails = asyncHandler(async (req, res) => {
         throw new Error("Error with Digitap!");
     }
 
+    if (
+        name.toLowerCase() !==
+        response.result.data.fullname.trim().toLowerCase()
+    ) {
+        return res.json({
+            nameMatched: false,
+            data: response.result,
+        });
+    }
     // Now respond with status 200 with JSON success true
     return res.json({
+        nameMatched: true,
         data: response.result,
     });
 });
 
 // @desc Save the pan details once verified.
-// @route POST /api/verify/pan/
+// @route POST /api/mobile/verify/pan/
 // @access Private
 export const savePanDetails = asyncHandler(async (req, res) => {
     const { data } = req.body;
@@ -139,7 +149,12 @@ export const savePanDetails = asyncHandler(async (req, res) => {
     const pan = data.pan;
 
     await PanDetails.findOneAndUpdate(
-        { "data.PAN": pan }, // Search by mobile number
+        {
+            $or: [
+                { "data.PAN": pan }, // Check if data.PAN matches
+                { "data.pan": pan }, // Check if data.pan matches
+            ],
+        },
         { data }, // Update data
         { upsert: true, new: true } // Create a new record if not found
     );

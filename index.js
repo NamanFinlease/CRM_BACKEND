@@ -4,10 +4,11 @@ import cors from "cors"; // Import cors
 import connectDB from "./config/db.js";
 import "dotenv/config.js";
 import morgan from "morgan";
-import { join } from 'path';
+import { join } from "path";
 import accountRouter from "./routes/AccountRouter.js";
 import applicantRouter from "./routes/ApplicantRouter.js";
 import applicationRouter from "./routes/ApplicationRouter.js";
+import appRouter from "./routes/AppRouter.js";
 import collectionRouter from "./routes/CollectionRouter.js";
 import leadRouter from "./routes/LeadsRouter.js"; // Import routes
 import employeeRouter from "./routes/EmployeesRouter.js";
@@ -42,32 +43,32 @@ var corsOption = {
 };
 app.use(cors(corsOption));
 
-
 // Logging middleware (optional)
 app.use(morgan("dev")); // Log HTTP requests
 
 // Serving static file..............
-app.use(express.static(join(process.cwd(), 'public')));
+app.use(express.static(join(process.cwd(), "public")));
 // Set the view engine to EJS
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 // Set the directory for EJS templates
-app.set('views', join(process.cwd(), 'views'));
+app.set("views", join(process.cwd(), "views"));
 
 // Routes
 app.get("/", (req, res) => {
     res.send("API is running.......");
 });
 app.get(`/verify-aadhaar/:id`, (req, res) => {
-    res.render('otpRequest',);
-  });
+    res.render("otpRequest");
+});
 app.get(`/otp-page/:id`, (req, res) => {
-    res.render('otpInput',);
-  });
+    res.render("otpInput");
+});
 app.get(`/otp-success`, (req, res) => {
-    res.render('otpSuccess',);
-  });
+    res.render("otpSuccess");
+});
 
+app.use("/api/mobile", appRouter); // Use the mobile routes
 app.use("/api/accounts", accountRouter); // Use the account routes
 app.use("/api/applications", applicationRouter); // Use the application routes
 app.use("/api/applicant", applicantRouter); // Use the applicant's routes
