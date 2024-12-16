@@ -39,7 +39,7 @@ router.route("/aadhaar").get(aadhaarMiddleware, aadhaarOtp);
 // Aadhaar OTP submitted by Borrower
 router.post("/submit-aadhaar-otp", aadhaarMiddleware, saveAadhaarDetails);
 router
-    .route("/verifyAadhaar")
+    .route("/verifyAadhaar/:id")
     .get(protect, checkAadhaarDetails)
     .patch(protect, verifyAadhaar);
 
