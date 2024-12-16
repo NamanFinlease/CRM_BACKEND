@@ -84,7 +84,7 @@ const aadhaarMiddleware = asyncHandler(async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.AADHAAR_LINK_SECRET);
 
         // Fetch the user lead using the decoded token's `_id`
-        const userLead = await Lead.findById(decoded._id);
+        const userLead = await Lead.findById(decoded.id);
 
         if (!userLead) {
             res.status(404);
