@@ -24,22 +24,6 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(
-    session({
-        secret: process.env.SESSION_KEY, // Replace with a secure, random string
-        resave: false, // Avoid resaving session variables if they haven't changed
-        saveUninitialized: false, // Don't save uninitialized sessions
-        cookie: {
-            httpOnly: true, // Helps prevent XSS attacks
-            secure: true, // Use HTTPS in production
-            maxAge: 5 * 60 * 1000, // 5 minute
-        },
-    })
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser()); //cookie parser middlerware
-
 // CORS configuration
 var corsOption = {
     origin: [
@@ -55,6 +39,22 @@ var corsOption = {
     optionsSuccessStatus: 204,
 };
 app.use(cors(corsOption));
+
+app.use(
+    session({
+        secret: process.env.SESSION_KEY, // Replace with a secure, random string
+        resave: false, // Avoid resaving session variables if they haven't changed
+        saveUninitialized: false, // Don't save uninitialized sessions
+        cookie: {
+            httpOnly: true, // Helps prevent XSS attacks
+            secure: true, // Use HTTPS in production
+            maxAge: 5 * 60 * 1000, // 5 minute
+        },
+    })
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); //cookie parser middlerware
 
 // Logging middleware (optional)
 app.use(morgan("dev")); // Log HTTP requests
