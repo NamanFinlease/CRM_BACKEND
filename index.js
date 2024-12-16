@@ -17,6 +17,7 @@ import verifyRouter from "./routes/VerifyRouter.js";
 import sanctionRouter from "./routes/SanctionRouter.js";
 import disbursalRouter from "./routes/DisbursalRouter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import { requireSessionToken } from "./middleware/authMiddleware.js";
 
 const PORT = process.env.PORT || 3000;
 connectDB();
@@ -47,7 +48,7 @@ app.use(
         saveUninitialized: false, // Don't save uninitialized sessions
         cookie: {
             httpOnly: true, // Helps prevent XSS attacks
-            secure: true, // Use HTTPS in production
+            secure: false, // Use HTTPS in production
             maxAge: 5 * 60 * 1000, // 5 minute
         },
     })
@@ -74,7 +75,7 @@ app.get("/", (req, res) => {
 app.get(`/verify-aadhaar`, (req, res) => {
     res.render("otpRequest");
 });
-app.get(`/otp-page`, (req, res) => {
+app.get(`/otp-page`, requireSessionToken, (req, res) => {
     res.render("otpInput");
 });
 app.get(`/otp-success`, (req, res) => {

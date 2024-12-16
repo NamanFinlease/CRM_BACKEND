@@ -19,8 +19,8 @@ export const generateAadhaarLink = asyncHandler(async (req, res) => {
     });
     req.session.token = token;
 
-    const customerName = `${fName}${mName ? ` ${mName}` : ``} ${lName}`;
-    const link = `https://api.fintechbasket.com/verify-aadhaar`;
+    const customerName = `${fName}${mName && ` ${mName}`} ${lName}`;
+    const link = `https://api.fintechbasket.com/verify-aadhaar/${token}`;
     const result = await aadhaarKyc(lead.mobile, lead.fName, lead.lName, link);
 
     if (result.data.ErrorMessage === "Success") {

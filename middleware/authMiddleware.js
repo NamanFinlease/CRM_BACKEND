@@ -71,6 +71,16 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 });
 
+function requireSessionToken(req, res, next) {
+    if (!req.session.token) {
+        res.status(403);
+        throw new Error("No token found!!!");
+
+        // return res.redirect("/login"); // Redirect to login if no token
+    }
+    next();
+}
+
 const aadhaarMiddleware = asyncHandler(async (req, res, next) => {
     const token = req.session.token;
 
@@ -112,4 +122,4 @@ const admin = (req, res, next) => {
     next();
 };
 
-export { protect, admin, aadhaarMiddleware };
+export { protect, admin, aadhaarMiddleware, requireSessionToken };
