@@ -186,7 +186,7 @@ export const getCamDetails = asyncHandler(async (req, res) => {
 // @access Private
 export const updateCamDetails = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { details } = req.body;
+    const { remarks, details } = req.body;
 
     const application = await Application.findById(id)
         .populate({ path: "lead", populate: { path: "documents" } })
@@ -220,7 +220,7 @@ export const updateCamDetails = asyncHandler(async (req, res) => {
                 application.lead.mName && ` ${application.lead.mName}`
             }${application.lead.lName && ` ${application.lead.lName}`}`,
             `CAM details added by ${application.creditManagerId.fName} ${application.creditManagerId.lName}`,
-            `${cam.details?.loanAmount} ${cam.details?.loanRecommended} ${cam.details?.netDisbursalAmount} ${cam.details?.disbursalDate} ${cam.details?.repaymentDate} ${cam.details?.eligibleTenure} ${cam.details?.repaymentAmount}`
+            `${remarks}`
         );
 
         res.json({ success: true, log: logs });

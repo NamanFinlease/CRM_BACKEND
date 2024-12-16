@@ -4,6 +4,7 @@ import { generateAadhaarOtp, verifyAadhaarOtp } from "../utils/aadhaar.js";
 import AadhaarDetails from "../models/AadhaarDetails.js";
 import sendEmail from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
+import { aadhaarKyc } from "../utils/smsGateway.js";
 
 // @desc Generate Aadhaar OTP.
 // @route GET /api/verify/mail/:id
@@ -14,15 +15,30 @@ export const generateAadhaarLink = asyncHandler(async (req, res) => {
     const lead = await Lead.findById(id);
     const { personalEmail, fName, mName, lName, _id } = lead;
     const token = jwt.sign({ _id }, process.env.AADHAAR_LINK_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "5m",
     });
-    const customerName = `${fName}${mName ? ` ${mName}` : ``} ${lName}`;
-    await sendEmail(personalEmail, customerName, `Aadhaar verification`, token);
+    req.session.token = token;
 
-    res.json({
-        success: true,
-        message: `Email sent to Applicant.`,
-    });
+    const customerName = `${fName}${mName ? ` ${mName}` : ``} ${lName}`;
+    const link = `https://api.fintechbasket.com/verify-aadhaar`;
+    const result = await aadhaarKyc(lead.mobile, lead.fName, lead.lName, link);
+
+    if (result.data.ErrorMessage === "Success") {
+        console.log("Link sent on mobile!!");
+        await sendEmail(personalEmail, customerName, `Aadhaar verification`);
+        return res.json({
+            success: true,
+            message: "Link sent successfully on mobile and email.",
+        });
+    }
+    // return res.json({
+    //     success: true,
+    //     message: "Link sent successfully on mobile and email.",
+    // });
+
+    return res
+        .status(500)
+        .json({ success: false, message: "Failed to send OTP" });
 });
 
 // @desc Generate Aadhaar OTP.
@@ -44,6 +60,7 @@ export const aadhaarOtp = asyncHandler(async (req, res) => {
 
     // Call the function to generate OTP using Aaadhaar number
     const response = await generateAadhaarOtp(id, aadhaar);
+
     // res.render('otpRequest',);
 
     res.json({
@@ -69,7 +86,6 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
 
     // Fetch Aaadhaar details using the provided OTP and request ID
     const response = await verifyAadhaarOtp(
-        id,
         otp,
         transactionId,
         fwdp,

@@ -13,3 +13,24 @@ export const otpVerified = async (mobile, fName, lName) => {
     );
     return res;
 };
+
+export const leadAllocated = async (
+    mobile,
+    fName,
+    lName,
+    empFname,
+    empLname,
+    empNo
+) => {
+    const res = await axios.post(
+        `https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=zvaAjMDIyk6rXzXqrZY1GQ&senderid=NMFSPE&channel=2&DCS=0&flashsms=0&number=91${mobile}&text=Dear%20${fName}%20${lName}%2C%20Your%20lead%20has%20been%20allocated%20to%20${empFname}%20${empLname}%2C%20Mob%20No.%20${empNo}.%20Will%20get%20back%20to%20you%20soon.%20Team%20Speedo%20Naman%20Finlease%20Pvt.%20Ltd&route=1`
+    );
+    return res;
+};
+
+export const aadhaarKyc = async (mobile, fName, lName, link) => {
+    const res = await axios.post(
+        `https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=zvaAjMDIyk6rXzXqrZY1GQ&senderid=NMFSPE&channel=2&DCS=0&flashsms=0&number=91${mobile}&text=Dear%20${fName}%20${lName}%2C%20Please%20complete%20your%20Aadhaar%20verification%20by%20clicking%20the%20link%20below%3A%20${link}%20Team%20Speedo%20Naman%20Finlease%20Pvt.%20Ltd&route=1`
+    );
+    return res;
+};

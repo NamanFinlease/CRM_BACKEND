@@ -101,6 +101,7 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
 // @access Private
 export const getPanDetails = asyncHandler(async (req, res) => {
     const { name, pan } = req.body;
+    console.log(name, pan);
 
     // Validate that aaadhaar is present in the leads
     if (!pan) {

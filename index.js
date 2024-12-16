@@ -1,4 +1,5 @@
 import express from "express";
+import session from "express-session";
 import cookieParser from "cookie-parser";
 import cors from "cors"; // Import cors
 import connectDB from "./config/db.js";
@@ -23,6 +24,18 @@ connectDB();
 const app = express();
 
 // Middleware
+app.use(
+    session({
+        secret: process.env.SESSION_KEY, // Replace with a secure, random string
+        resave: false, // Avoid resaving session variables if they haven't changed
+        saveUninitialized: false, // Don't save uninitialized sessions
+        cookie: {
+            httpOnly: true, // Helps prevent XSS attacks
+            secure: true, // Use HTTPS in production
+            maxAge: 5 * 60 * 1000, // 5 minute
+        },
+    })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()); //cookie parser middlerware
@@ -58,10 +71,10 @@ app.set("views", join(process.cwd(), "views"));
 app.get("/", (req, res) => {
     res.send("API is running.......");
 });
-app.get(`/verify-aadhaar/:id`, (req, res) => {
+app.get(`/verify-aadhaar`, (req, res) => {
     res.render("otpRequest");
 });
-app.get(`/otp-page/:id`, (req, res) => {
+app.get(`/otp-page`, (req, res) => {
     res.render("otpInput");
 });
 app.get(`/otp-success`, (req, res) => {

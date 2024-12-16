@@ -72,17 +72,16 @@ const protect = asyncHandler(async (req, res, next) => {
 });
 
 const aadhaarMiddleware = asyncHandler(async (req, res, next) => {
-    const { id } = req.params; // Extract the token (ID) from the request parameters
-
-    if (!id) {
-        // Return an error if no token is provided
+    const token = req.session.token;
+    if (!token) {
         res.status(401);
-        throw new Error("Not Authorized! No token found");
+        throw new Error("Unathorized, no token found!!");
     }
 
     try {
         // Decode the token using the secret
-        const decoded = jwt.verify(id, process.env.AADHAAR_LINK_SECRET);
+        // const decoded = jwt.verify(id, process.env.AADHAAR_LINK_SECRET);
+        const decoded = jwt.verify(token, process.env.AADHAAR_LINK_SECRET);
 
         // Fetch the user lead using the decoded token's `_id`
         const userLead = await Lead.findById(decoded._id);
@@ -93,7 +92,7 @@ const aadhaarMiddleware = asyncHandler(async (req, res, next) => {
         }
 
         // Attach the lead ID to the `req` object for downstream use
-        req.userLeadId = userLead._id;
+        req.userLeadId = userLead._id.toString();
 
         // Call the next middleware or route handler
         next();

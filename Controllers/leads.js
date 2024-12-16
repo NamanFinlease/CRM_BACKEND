@@ -7,7 +7,7 @@ import { postLogs } from "./logs.js";
 import { applicantDetails } from "./applicantPersonalDetails.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateRandomNumber from "../utils/generateRandomNumbers.js";
-import { otpSent } from "../utils/smsGateway.js";
+import { leadAllocated, otpSent } from "../utils/smsGateway.js";
 import { otpVerified } from "../utils/smsGateway.js";
 import equifax from "../utils/fetchCibil.js";
 import { checkApproval } from "../utils/checkApproval.js";
@@ -141,21 +141,35 @@ export const allocateLead = asyncHandler(async (req, res) => {
         id,
         { screenerId },
         { new: true }
-    );
+    ).populate({ path: "screenerId", select: "-password" });
+    console.log(lead);
 
     if (!lead) {
         throw new Error("Lead not found"); // This error will be caught by the error handler
     }
-    const employee = await Employee.findOne({ _id: screenerId });
-    const logs = await postLogs(
-        lead._id,
-        "LEAD IN PROCESS",
-        `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
-        `Lead allocated to ${employee.fName} ${employee.lName}`
+    const result = await leadAllocated(
+        lead.mobile,
+        lead.fName,
+        lead.lName,
+        lead.screenerId.fName,
+        lead.screenerId.lName,
+        lead.screenerId.mobile
     );
+    if (result.data.ErrorMessage === "Success") {
+        const employee = await Employee.findOne({ _id: screenerId });
+        const logs = await postLogs(
+            lead._id,
+            "LEAD IN PROCESS",
+            `${lead.fName} ${lead.mName ?? ""} ${lead.lName}`,
+            `Lead allocated to ${employee.fName} ${employee.lName}`
+        );
 
-    // Send the updated lead as a JSON response
-    return res.json({ lead, logs }); // This is a successful response
+        // Send the updated lead as a JSON response
+        return res.json({ lead, logs }); // This is a successful response
+    }
+    return res
+        .status(500)
+        .json({ success: false, message: "Failed to send OTP" });
 });
 
 // @desc Get Allocated Leads depends on whether if it's admin or a screener.

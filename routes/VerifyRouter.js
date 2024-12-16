@@ -35,11 +35,11 @@ router.route("/generate-link/:id").get(generateAadhaarLink);
 
 // aadhaar verify
 // router.post('/aadhaar/:id');
-router.route("/aadhaar/:id").get(aadhaarMiddleware, aadhaarOtp);
+router.route("/aadhaar").get(aadhaarMiddleware, aadhaarOtp);
 // Aadhaar OTP submitted by Borrower
-router.post("/submit-aadhaar-otp/:id", aadhaarMiddleware, saveAadhaarDetails);
+router.post("/submit-aadhaar-otp", aadhaarMiddleware, saveAadhaarDetails);
 router
-    .route("/verifyAadhaar/:id")
+    .route("/verifyAadhaar")
     .get(protect, checkAadhaarDetails)
     .patch(protect, verifyAadhaar);
 
