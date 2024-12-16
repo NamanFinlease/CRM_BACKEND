@@ -73,6 +73,7 @@ const protect = asyncHandler(async (req, res, next) => {
 
 const aadhaarMiddleware = asyncHandler(async (req, res, next) => {
     const token = req.session.token;
+
     if (!token) {
         res.status(401);
         throw new Error("Unathorized, no token found!!");
@@ -84,7 +85,7 @@ const aadhaarMiddleware = asyncHandler(async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.AADHAAR_LINK_SECRET);
 
         // Fetch the user lead using the decoded token's `_id`
-        const userLead = await Lead.findById(decoded.id);
+        const userLead = await Lead.findById(decoded._id);
 
         if (!userLead) {
             res.status(404);
