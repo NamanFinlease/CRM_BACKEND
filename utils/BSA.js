@@ -14,13 +14,12 @@ export const BSA = async (formData) => {
                 },
             }
         );
-
-        if (response.data.data != null) {
+        if (response.data.responseCode === "SRS016") {
             return { success: true, message: "Bank statements are original" };
         }
         return {
             success: false,
-            message: "The uploaded files seems to be modified.",
+            message: "The uploaded files seems to be modified or unreadable.",
         };
     } catch (error) {
         return { success: false, message: error.message };
