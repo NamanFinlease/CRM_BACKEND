@@ -2,8 +2,10 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import Documents from "../models/Documents.js";
 import Employee from "../models/Employees.js";
 import Lead from "../models/Leads.js";
+import { BSA } from "../utils/BSA.js";
 import { postLogs } from "./logs.js";
 import { uploadDocs, getDocs } from "../utils/docsUploadAndFetch.js";
+import FormData from "form-data";
 
 // @desc Adding file documents to a lead
 // @route PATCH /api/leads/docs/:id or /api/applications/docs/:id
@@ -11,7 +13,6 @@ import { uploadDocs, getDocs } from "../utils/docsUploadAndFetch.js";
 export const addDocs = asyncHandler(async (req, res) => {
     const { id } = req.params;
     let employeeId;
-
     const { remarks } = req.body;
 
     let lead = await Lead.findById(id);
@@ -45,6 +46,30 @@ export const addDocs = asyncHandler(async (req, res) => {
                 message:
                     "You cannot upload both aadhaar documents and eAadhaar.",
             });
+        }
+
+        if (req.files?.bankStatement) {
+            const buffers = []; // Array to store file buffers
+            const filenames = []; // Array to store file names
+
+            // Extract buffers and filenames
+            req.files.bankStatement.forEach((file) => {
+                buffers.push(file.buffer);
+                filenames.push(file.originalname);
+            });
+
+            // Prepare FormData
+            const formData = new FormData();
+            buffers.forEach((buffer, index) => {
+                formData.append("file", buffer, filenames[index]); // Add file to FormData
+            });
+
+            const response = await BSA(formData);
+
+            if (!response.success) {
+                res.status(400);
+                throw new Error(response.message);
+            }
         }
 
         // If only aadhaarFront and aadhaarBack are provided, or only eAadhaar or none, proceed

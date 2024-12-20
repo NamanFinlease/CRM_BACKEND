@@ -54,4 +54,63 @@ const generatePresignedUrl = (key, mimeType) => {
     return s3.getSignedUrl("getObject", params);
 };
 
-export { uploadFilesToS3, deleteFilesFromS3, generatePresignedUrl };
+// Copy files from old Pan to new Pan
+async function renamePanFolder(oldPan, newPan) {
+    const oldFolder = `${oldPan}/`;
+    const newFolder = `${newPan}/`;
+
+    try {
+        // Step 1: List all objects in the old folder
+        const listParams = {
+            Bucket: bucketName,
+            Prefix: oldFolder,
+        };
+        const listedObjects = await s3.listObjectsV2(listParams).promise();
+
+        if (!listedObjects.Contents.length) {
+            console.log(`No files found in folder: ${oldFolder}`);
+            return;
+        }
+        // Step 2: Copy objects to the new folder
+        const copyPromises = listedObjects.Contents.map(async (object) => {
+            const oldKey = object.Key;
+            const newKey = oldKey.replace(oldFolder, newFolder);
+
+            await s3
+                .copyObject({
+                    Bucket: bucketName,
+                    CopySource: `${bucketName}/${oldKey}`,
+                    Key: newKey,
+                })
+                .promise();
+        });
+        await Promise.all(copyPromises);
+
+        try {
+            // Step 3: Delete objects in the old folder
+            const deleteParams = {
+                Bucket: bucketName,
+                Delete: {
+                    Objects: listedObjects.Contents.map((object) => ({
+                        Key: object.Key,
+                    })),
+                },
+            };
+
+            await s3.deleteObjects(deleteParams).promise();
+            console.log(`Deleted all files from folder: ${oldFolder}`);
+        } catch (error) {
+            console.log("Error deleting the old folder", error);
+        }
+        return { success: true };
+    } catch (error) {
+        return { success: true, message: `Error renaming folder: ${error}` };
+    }
+}
+
+export {
+    uploadFilesToS3,
+    deleteFilesFromS3,
+    generatePresignedUrl,
+    renamePanFolder,
+};

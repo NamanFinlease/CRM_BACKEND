@@ -14,6 +14,7 @@ import { checkApproval } from "../utils/checkApproval.js";
 import { postCamDetails } from "./application.js";
 import cibilPdf from "../utils/cibilPdf.js";
 import Otp from "../models/Otp.js";
+import { renamePanFolder } from "../config/uploadFilesToS3.js";
 
 // @desc Create loan leads
 // @route POST /api/leads
@@ -240,6 +241,39 @@ export const updateLead = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("No lead found!!");
     }
+
+    const result = await renamePanFolder(lead.pan, updates.pan);
+
+    if (!result.success) {
+        res.status(400);
+        throw new Error("Couldn't rename folder to new PAN!!");
+    }
+
+    const docs = await Documents.findById({ _id: lead?.documents });
+
+    if (!docs) {
+        res.status(404);
+        throw new Error("No docs found!!");
+    }
+
+    // Update singleDocuments
+    docs.document.singleDocuments.forEach((doc) => {
+        const oldPan = doc.url.slice(0, 10);
+        doc.url = doc.url.replace(oldPan, updates.pan);
+    });
+
+    // Update multipleDocuments
+    Object.keys(docs.document.multipleDocuments).forEach((key) => {
+        docs.document.multipleDocuments[key].forEach((doc) => {
+            doc.url = doc.url.replace(
+                new RegExp(`^${lead.pan}/`),
+                `${updates.pan}/`
+            );
+        });
+    });
+
+    docs.pan = updates.pan;
+    await docs.save();
 
     // Check if screenerId matches the one in the lead document
     if (lead.screenerId.toString() !== req.employee._id.toString()) {

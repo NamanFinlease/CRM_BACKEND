@@ -1,7 +1,7 @@
 // config/otpUtil.js
 import axios from "axios";
 
-export const generateAadhaarOtp = async (id, aadhaar) => {
+export const generateAadhaarOtp = async (aadhaar) => {
     try {
         // Construct the request payload
         const data = {
