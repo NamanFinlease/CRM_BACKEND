@@ -48,29 +48,29 @@ export const addDocs = asyncHandler(async (req, res) => {
             });
         }
 
-        if (req.files?.bankStatement) {
-            const buffers = []; // Array to store file buffers
-            const filenames = []; // Array to store file names
+        // if (req.files?.bankStatement) {
+        //     const buffers = []; // Array to store file buffers
+        //     const filenames = []; // Array to store file names
 
-            // Extract buffers and filenames
-            req.files.bankStatement.forEach((file) => {
-                buffers.push(file.buffer);
-                filenames.push(file.originalname);
-            });
+        //     // Extract buffers and filenames
+        //     req.files.bankStatement.forEach((file) => {
+        //         buffers.push(file.buffer);
+        //         filenames.push(file.originalname);
+        //     });
 
-            // Prepare FormData
-            const formData = new FormData();
-            buffers.forEach((buffer, index) => {
-                formData.append("file", buffer, filenames[index]); // Add file to FormData
-            });
+        //     // Prepare FormData
+        //     const formData = new FormData();
+        //     buffers.forEach((buffer, index) => {
+        //         formData.append("file", buffer, filenames[index]); // Add file to FormData
+        //     });
 
-            const response = await BSA(formData);
+        //     const response = await BSA(formData);
 
-            if (!response.success) {
-                res.status(400);
-                throw new Error(response.message);
-            }
-        }
+        //     if (!response.success) {
+        //         res.status(400);
+        //         throw new Error(response.message);
+        //     }
+        // }
 
         // If only aadhaarFront and aadhaarBack are provided, or only eAadhaar or none, proceed
         if (
