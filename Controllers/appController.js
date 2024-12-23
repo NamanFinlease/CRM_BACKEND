@@ -100,8 +100,7 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
 // @route GET /api/mobile/verify/pan/
 // @access Private
 export const getPanDetails = asyncHandler(async (req, res) => {
-    const { name, pan } = req.body;
-    console.log(name, pan);
+    const { pan } = req.body;
 
     // Validate that aaadhaar is present in the leads
     if (!pan) {
@@ -125,15 +124,15 @@ export const getPanDetails = asyncHandler(async (req, res) => {
         throw new Error("Error with Digitap!");
     }
 
-    if (
-        name.toLowerCase() !==
-        response.result.data.fullname.trim().toLowerCase()
-    ) {
-        return res.json({
-            nameMatched: false,
-            data: response.result,
-        });
-    }
+    // if (
+    //     name.toLowerCase() !==
+    //     response.result.data.fullname.trim().toLowerCase()
+    // ) {
+    //     return res.json({
+    //         nameMatched: false,
+    //         data: response.result,
+    //     });
+    // }
     // Now respond with status 200 with JSON success true
     return res.json({
         nameMatched: true,

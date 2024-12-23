@@ -2,18 +2,21 @@ import axios from "axios";
 
 export const BSA = async (formData) => {
     try {
+        // console.log(formData);
         const response = await axios.post(
-            "https://sm-bsa-sandbox.scoreme.in/bsa/external/uploadBankStatementFiles",
+            "https://sm-bsa.scoreme.in/bsa/external/uploadBankStatementFiles",
             formData,
             {
                 headers: {
-                    ClientId: "ecc2c3d648be4c906d9fb69cf4d74e96",
+                    ClientId: "1ab3c5a472c5270e990db15ab29e848d",
                     ClientSecret:
-                        "ac9e3a9e437c52144fc5fe27e76c44027d1dc2cde2eb7fceb8cee6bc198f905a",
+                        "81283b1dfb54e96cf17da8c62d4005699bc3b44730e99c62ec9f1a9c8b8cb3fa",
                     ...formData.getHeaders(), // Proper headers for FormData
                 },
             }
         );
+        console.log(response.data);
+
         if (response.data.responseCode === "SRS016") {
             return { success: true, message: response.data.responseMessage };
         }

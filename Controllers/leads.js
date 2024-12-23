@@ -199,23 +199,23 @@ export const allocatedLeads = asyncHandler(async (req, res) => {
         res.status(401);
         throw new Error("Not authorized!!!");
     }
-    const page = parseInt(req.query.page) || 1; // current page
-    const limit = parseInt(req.query.limit) || 10; // items per page
-    const skip = (page - 1) * limit;
+    // const page = parseInt(req.query.page) || 1; // current page
+    // const limit = parseInt(req.query.limit) || 10; // items per page
+    // const skip = (page - 1) * limit;
 
     const leads = await Lead.find(query)
-        .skip(skip)
-        .limit(limit)
         .populate("screenerId")
         .populate("documents")
         .sort({ updatedAt: -1 });
+    // .skip(skip)
+    // .limit(limit)
 
     const totalLeads = await Lead.countDocuments(query);
 
     return res.json({
         totalLeads,
-        totalPages: Math.ceil(totalLeads / limit),
-        currentPage: page,
+        // totalPages: Math.ceil(totalLeads / limit),
+        // currentPage: page,
         leads,
     });
 });

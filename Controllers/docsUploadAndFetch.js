@@ -14,6 +14,7 @@ export const addDocs = asyncHandler(async (req, res) => {
     const { id } = req.params;
     let employeeId;
     const { remarks } = req.body;
+    console.log(remarks);
 
     let lead = await Lead.findById(id);
     if (!lead) {
@@ -48,29 +49,63 @@ export const addDocs = asyncHandler(async (req, res) => {
             });
         }
 
-        // if (req.files?.bankStatement) {
-        //     const buffers = []; // Array to store file buffers
-        //     const filenames = []; // Array to store file names
+        if (req.files?.bankStatement) {
+            const buffers = []; // Array to store file buffers
+            const filenames = []; // Array to store file names
 
-        //     // Extract buffers and filenames
-        //     req.files.bankStatement.forEach((file) => {
-        //         buffers.push(file.buffer);
-        //         filenames.push(file.originalname);
-        //     });
+            // Extract buffers and filenames
+            req.files.bankStatement.forEach((file) => {
+                buffers.push(file.buffer);
+                filenames.push(file.originalname);
+            });
 
-        //     // Prepare FormData
-        //     const formData = new FormData();
-        //     buffers.forEach((buffer, index) => {
-        //         formData.append("file", buffer, filenames[index]); // Add file to FormData
-        //     });
+            // Prepare the 'data' object dynamically
+            const data = { filePassword: {} };
 
-        //     const response = await BSA(formData);
+            // Check if remarks is a string or an array
+            if (typeof remarks === "string") {
+                console.log("It's coming here");
 
-        //     if (!response.success) {
-        //         res.status(400);
-        //         throw new Error(response.message);
-        //     }
-        // }
+                // If remarks is a single string, assign it to all files
+                filenames.forEach((fileName) => {
+                    data.filePassword[fileName] = remarks; // Use the same remark for all files
+                });
+                console.log(data);
+            } else if (Array.isArray(remarks)) {
+                // If remarks is an array, ensure the length matches the number of files
+                if (remarks.length !== filenames.length) {
+                    res.status(400);
+                    throw new Error(
+                        "The number of remarks must match the number of uploaded files."
+                    );
+                }
+
+                // Assign each remark to the corresponding file
+                filenames.forEach((fileName, index) => {
+                    data.filePassword[fileName] = remarks[index]; // Use the corresponding remark
+                });
+            } else {
+                res.status(400);
+                throw new Error("Remarks must be a string or an array.");
+            }
+
+            // Prepare FormData
+            const formData = new FormData();
+            buffers.forEach((buffer, index) => {
+                const fileName = filenames[index];
+                formData.append("file", buffer, fileName); // Add file to FormData
+            });
+
+            // Add the 'data' field as JSON to FormData
+            formData.append("data", JSON.stringify(data));
+
+            const response = await BSA(formData);
+
+            if (!response.success) {
+                res.status(400);
+                throw new Error(response.message);
+            }
+        }
 
         // If only aadhaarFront and aadhaarBack are provided, or only eAadhaar or none, proceed
         if (
