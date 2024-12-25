@@ -100,7 +100,7 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
 // @route GET /api/mobile/verify/pan/
 // @access Private
 export const getPanDetails = asyncHandler(async (req, res) => {
-    const { pan } = req.body;
+    const { fullName, first_name, last_name, gender, dob, pan } = req.body;
 
     // Validate that aaadhaar is present in the leads
     if (!pan) {
