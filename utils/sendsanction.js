@@ -20,6 +20,7 @@ export const generateSanctionLetter = async (
     stateCountry,
     camDetails,
     lead,
+    docs,
     recipientEmail
 ) => {
     try {
@@ -34,11 +35,11 @@ export const generateSanctionLetter = async (
         );
 
         // Save the sanction letter in S3
-        const result = await htmlToPdf(lead, htmlToSend);
+        const result = await htmlToPdf(docs, htmlToSend, "sanctionLetter");
 
         // Create form-data and append the PDF buffer
         const formData = new FormData();
-        formData.append("file", Buffer.from(result), {
+        formData.append("file", Buffer.from(result.pdfBuffer), {
             filename: `sanction_${fullname}.pdf`,
             contentType: "application/pdf",
         });
@@ -81,7 +82,7 @@ export const generateSanctionLetter = async (
         // Make the request to the ZeptoMail API
         const response = await axios(options);
         if (response.data.message === "OK") {
-            await htmlToPdf(lead, htmlToSend);
+            // await htmlToPdf(lead, htmlToSend);
             return {
                 success: true,
                 message: "Sanction letter sent and saved successfully",

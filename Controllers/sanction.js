@@ -9,6 +9,7 @@ import { getSanctionData } from "../utils/sanctionData.js";
 import mongoose from "mongoose";
 import { postLogs } from "./logs.js";
 
+import Documents from "../models/Documents.js";
 import Lead from "../models/Leads.js";
 import Sanction from "../models/Sanction.js";
 
@@ -175,6 +176,8 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 _id: sanction.application.lead,
             });
 
+            const docs = await Documents.findOne({ _id: lead.documents });
+
             const activeLead = await Closed.findOne(
                 {
                     pan: sanction.application.applicant.personalDetails.pan,
@@ -230,6 +233,7 @@ export const sanctionApprove = asyncHandler(async (req, res) => {
                 response.stateCountry,
                 camDetails,
                 lead,
+                docs,
                 `${sanction.application.applicant.personalDetails.personalEmail}`
             );
 
