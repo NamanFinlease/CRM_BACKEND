@@ -35,9 +35,9 @@ router.route("/generate-link/:id").get(generateAadhaarLink);
 
 // aadhaar verify
 // router.post('/aadhaar/:id');
-router.route("/aadhaar").get(aadhaarMiddleware, aadhaarOtp);
+router.route("/aadhaar").get( aadhaarOtp);
 // Aadhaar OTP submitted by Borrower
-router.post("/submit-aadhaar-otp", aadhaarMiddleware, saveAadhaarDetails);
+router.post("/submit-aadhaar-otp",  saveAadhaarDetails);
 router
     .route("/verifyAadhaar/:id")
     .get(protect, checkAadhaarDetails)
