@@ -2,8 +2,8 @@ import axios from "axios";
 
 const apiKey = process.env.ZOHO_APIKEY;
 
-async function sendEmail(recipient, recipientName, subject) {
-    const link = `https://api.fintechbasket.com/verify-aadhaar`;
+async function sendEmail(recipient, recipientName, subject,link) {
+    // const link = `https://api.fintechbasket.com/verify-aadhaar`;
     try {
         const options = {
             method: "POST",

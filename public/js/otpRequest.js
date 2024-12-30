@@ -13,7 +13,7 @@ async function requestOtp() {
     }
 
     try {
-        const response = await fetch(`/api/verify/aadhaar`);
+        const response = await fetch(`/api/verify/aadhaar/${aadhaarId}`);
         const result = await response.json();
 
         if (response.ok && result.success) {
@@ -28,7 +28,7 @@ async function requestOtp() {
 
             localStorage.setItem("aadhaarInfo", JSON.stringify(aadhaarInfo));
             console.log(localStorage.getItem("aadhaarInfo"));
-            window.location.href = `/otp-page`;
+            window.location.href = `/otp-page/${aadhaarId}`;
         } else {
             alert(result.message || "Failed to request OTP. Please try again.");
         }

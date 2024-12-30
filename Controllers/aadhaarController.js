@@ -20,12 +20,13 @@ export const generateAadhaarLink = asyncHandler(async (req, res) => {
     req.session.token = token;
 
     const customerName = `${fName}${mName && ` ${mName}`} ${lName}`;
-    const link = `https://api.fintechbasket.com/verify-aadhaar/${token}`;
+    const link = `http://localhost:3000/verify-aadhaar/${id}`;
+    // const link = `https://api.fintechbasket.com/verify-aadhaar`;
     const result = await aadhaarKyc(lead.mobile, lead.fName, lead.lName, link);
 
     if (result.data.ErrorMessage === "Success") {
         console.log("Link sent on mobile!!");
-        await sendEmail(personalEmail, customerName, `Aadhaar verification`);
+        await sendEmail(personalEmail, customerName, `Aadhaar verification`,link);
         return res.json({
             success: true,
             message: "Link sent successfully on mobile and email.",
@@ -45,21 +46,23 @@ export const generateAadhaarLink = asyncHandler(async (req, res) => {
 // @route POST /api/verify/aadhaar/:id
 // @access Private
 export const aadhaarOtp = asyncHandler(async (req, res) => {
-    const id = req.userLeadId;
+    const {id} = req.params;
 
     const lead = await Lead.findById(id);
     const aadhaar = lead?.aadhaar;
 
+    
     // Validate Aaadhaar number (12 digits)
     if (!/^\d{12}$/.test(aadhaar)) {
         return res.status(400).json({
             success: false,
-            message: "Aaadhaar number must be a 12-digit number.",
+            message: "Aadhaar number must be a 12-digit number.",
         });
     }
-
+    
     // Call the function to generate OTP using Aaadhaar number
     const response = await generateAadhaarOtp(id, aadhaar);
+    console.log('object',response)
 
     // res.render('otpRequest',);
 
@@ -75,7 +78,7 @@ export const aadhaarOtp = asyncHandler(async (req, res) => {
 // @route PATCH /api/verify/aaadhaar-otp/:id
 // @access Private
 export const saveAadhaarDetails = asyncHandler(async (req, res) => {
-    const id = req.userLeadId;
+    const id = req.params;
     const { otp, transactionId, fwdp, codeVerifier } = req.body;
 
     // Check if both OTP and request ID are provided
@@ -84,6 +87,7 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
         throw new Error("Missing fields.");
     }
 
+    console.log('otp data',otp,transactionId,fwdp,codeVerifier)
     // Fetch Aaadhaar details using the provided OTP and request ID
     const response = await verifyAadhaarOtp(
         otp,
@@ -91,6 +95,9 @@ export const saveAadhaarDetails = asyncHandler(async (req, res) => {
         fwdp,
         codeVerifier
     );
+
+
+    console.log('otp res',response)
 
     // Check if the response status code is 422 which is for failed verification
     if (response.code === "200") {

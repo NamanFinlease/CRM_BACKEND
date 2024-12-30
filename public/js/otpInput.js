@@ -27,7 +27,7 @@ async function resendOtp() {
     resendBtn.innerText = "Resending...";
 
     try {
-        const response = await fetch(`/api/verify/aadhaar`);
+        const response = await fetch(`/api/verify/aadhaar/${aadhaarId}`);
         const result = await response.json();
 
         if (response.ok && result.success) {
@@ -76,7 +76,7 @@ async function submitOTP(event) {
 
     try {
         const aadhharInfo = JSON.parse(localStorage.getItem("aadhaarInfo"));
-        const response = await fetch(`/api/verify/submit-aadhaar-otp`, {
+        const response = await fetch(`/api/verify/submit-aadhaar-otp/${aadhaarId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -91,7 +91,7 @@ async function submitOTP(event) {
                 alert("OTP Verified Successfully!");
                 localStorage.clear();
                 // Redirect or open the next page
-                window.location.href = "/otp-success"; // Replace `/next-page` with your actual URL
+                window.location.href = `/otp-success/${aadhaarId}`; // Replace `/next-page` with your actual URL
             } else {
                 alert(data.message || "OTP verification failed.");
             }

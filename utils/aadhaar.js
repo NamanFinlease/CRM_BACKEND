@@ -1,13 +1,15 @@
 // config/otpUtil.js
 import axios from "axios";
 
-export const generateAadhaarOtp = async (aadhaar) => {
+export const generateAadhaarOtp = async (id,aadhaar) => {
     try {
         // Construct the request payload
         const data = {
             uniqueId: "1234", // Adjust as needed if dynamic
             uid: aadhaar, // Aadhaar number
         };
+
+        console.log('data',data)
 
         // API endpoint and headers
         const url = "https://svc.digitap.ai/ent/v3/kyc/intiate-kyc-auto";
@@ -20,6 +22,8 @@ export const generateAadhaarOtp = async (aadhaar) => {
         // Send POST request to the API
         const response = await axios.post(url, data, { headers });
 
+        console.log('response',response.data)
+
         // Check for a successful response
         if (response?.data?.code !== "200") {
             return { success: false, message: "Please enter a valid Aadhaar" };
@@ -29,7 +33,7 @@ export const generateAadhaarOtp = async (aadhaar) => {
         return { success: true, data: response.data };
     } catch (error) {
         // Log and handle errors
-        console.error("Error generating Aadhaar OTP:", error.message || error);
+        console.error("Error generating Aadhaar OTP:", error || error);
 
         // Return a custom error message
         return {
@@ -53,6 +57,8 @@ export const verifyAadhaarOtp = async (
         fwdp,
         codeVerifier,
     };
+
+    console.log('data',data)
     try {
         const response = await axios.post(
             "https://svc.digitap.ai/ent/v3/kyc/submit-otp",
@@ -64,8 +70,12 @@ export const verifyAadhaarOtp = async (
                 },
             }
         );
+
+        console.log('response',response)
         return response.data; // Return the response data
     } catch (error) {
+
+        console.log('error',error.response.data)
         throw new Error(error?.response?.data?.msg || "An error occurred");
     }
 };
