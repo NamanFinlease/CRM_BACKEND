@@ -81,7 +81,7 @@ export const generateSanctionLetter = async (
         // Make the request to the ZeptoMail API
         const response = await axios(options);
         if (response.data.message === "OK") {
-            // await htmlToPdf(lead, htmlToSend);
+            await htmlToPdf(lead, htmlToSend);
             return {
                 success: true,
                 message: "Sanction letter sent and saved successfully",
