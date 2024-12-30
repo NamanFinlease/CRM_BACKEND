@@ -16,30 +16,42 @@ export async function htmlToPdf(docs, htmlResponse, fieldName) {
             pdfBuffer = await page.pdf({
                 format: "A4", // Page format
             });
-        }
-        // Set the HTML content for the page
-        await page.setContent(htmlResponse);
 
-        // Generate a PDF from the HTML content
-        pdfBuffer = await page.pdf({
-            width: "8.5in", // Double the standard width
-            height: "14in", // Double the standard height
-            margin: {
-                top: "0.2in",
-                bottom: "0.2in",
-                left: "0.2in",
-                right: "0.2in",
-            },
-        });
+            // Use the utility function to upload the PDF buffer
+            const result = await uploadDocs(docs, null, null, {
+                isBuffer: true,
+                buffer: pdfBuffer,
+                fieldName: fieldName,
+            });
 
-        // Use the utility function to upload the PDF buffer
-        const result = await uploadDocs(docs, null, null, {
-            isBuffer: true,
-            buffer: pdfBuffer,
-            fieldName: fieldName,
-        });
-        if (!result) {
-            return { success: false, message: "Failed to upload PDF." };
+            if (!result) {
+                return { success: false, message: "Failed to upload PDF." };
+            }
+        } else if (fieldName === "sanctionLetter") {
+            // Set the HTML content for the page
+            await page.setContent(htmlResponse);
+
+            // Generate a PDF from the HTML content
+            pdfBuffer = await page.pdf({
+                width: "8.5in", // Double the standard width
+                height: "14in", // Double the standard height
+                margin: {
+                    top: "0.2in",
+                    bottom: "0.2in",
+                    left: "0.2in",
+                    right: "0.2in",
+                },
+            });
+
+            // Use the utility function to upload the PDF buffer
+            const result = await uploadDocs(docs, null, null, {
+                isBuffer: true,
+                buffer: pdfBuffer,
+                fieldName: fieldName,
+            });
+            if (!result) {
+                return { success: false, message: "Failed to upload PDF." };
+            }
         }
         return {
             success: true,
