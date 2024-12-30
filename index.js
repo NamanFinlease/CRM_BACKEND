@@ -43,13 +43,13 @@ app.use(cors(corsOption));
 
 app.use(
     session({
-        secret: process.env.SESSION_KEY, // Replace with a secure, random string
-        resave: false, // Avoid resaving session variables if they haven't changed
+        secret: process.env.SESSION_KEY, 
+        resave: false,
         saveUninitialized: false, // Don't save uninitialized sessions
         cookie: {
             httpOnly: true, // Helps prevent XSS attacks
             secure: false, // Use HTTPS in production
-            maxAge: 5 * 60 * 1000, // 5 minute
+            maxAge: 5 * 60 * 1000, 
         },
     })
 );
@@ -72,13 +72,13 @@ app.set("views", join(process.cwd(), "views"));
 app.get("/", (req, res) => {
     res.send("API is running.......");
 });
-app.get(`/verify-aadhaar`, requireSessionToken, (req, res) => {
+app.get(`/verify-aadhaar`, (req, res) => {
     res.render("otpRequest");
 });
-app.get(`/otp-page`, requireSessionToken, (req, res) => {
+app.get(`/otp-page`, (req, res) => {
     res.render("otpInput");
 });
-app.get(`/otp-success`, requireSessionToken, (req, res) => {
+app.get(`/otp-success`, (req, res) => {
     res.render("otpSuccess");
 });
 
