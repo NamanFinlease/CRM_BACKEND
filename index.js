@@ -72,7 +72,7 @@ app.set("views", join(process.cwd(), "views"));
 app.get("/", (req, res) => {
     res.send("API is running.......");
 });
-app.get(`/verify-aadhaar`, requireSessionToken, (req, res) => {
+app.get(`/verify-aadhaar`, (req, res) => {
     res.render("otpRequest");
 });
 app.get(`/otp-page`, requireSessionToken, (req, res) => {
