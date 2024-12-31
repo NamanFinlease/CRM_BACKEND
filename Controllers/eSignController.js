@@ -67,13 +67,15 @@ export const eSignWebhook = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Document not signed!!");
     }
+    const response = await getDoc(data.entTransactionId);
+    console.log(response);
 });
 
-export const getDoc = async (eSignStepOne) => {
+export const getDoc = async (transactionId) => {
     const eSignStepfour = await axios.post(
         "https://api.digitap.ai/clickwrap/v1/get-doc-url",
         {
-            transactionId: `${eSignStepOne.data.model.entTransactionId}`,
+            transactionId: `${transactionId}`,
         },
         {
             headers: {

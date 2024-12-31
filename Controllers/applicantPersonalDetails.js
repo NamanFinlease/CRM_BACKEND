@@ -16,15 +16,6 @@ export const applicantDetails = async (details = null) => {
             $and: [
                 { "personalDetails.pan": details.pan }, // Check if PAN matches
                 { "personalDetails.aadhaar": details.aadhaar }, // Check if Aadhaar matches
-                {
-                    $or: [
-                        { "personalDetails.mobile": details.mobile },
-                        {
-                            "personalDetails.personalEmail":
-                                details.personalEmail,
-                        },
-                    ],
-                },
             ],
         };
 
