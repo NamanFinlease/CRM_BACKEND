@@ -62,22 +62,34 @@ export const sendLinkToCustomer = async (eSignStepOne, formData) => {
 // @access Public
 export const eSignWebhook = asyncHandler(async (req, res) => {
     const data = req.body;
+    console.log(data);
     if (data["signers-info"].status !== "SIGNED") {
+        console.log("Document not signed!!");
         res.status(400);
         throw new Error("Document not signed!!");
     }
-
-    const eSignStepfour = await axios.post(
-        "https://api.digitap.ai/clickwrap/v1/get-doc-url",
-        {
-            transactionId: `${data.entTransactionId}`,
-        },
-        {
-            headers: {
-                ent_authorization: process.env.DIGITAP_AUTH_KEY,
-                "Content-Type": "application/json",
-            },
-        }
-    );
-    console.log(eSignStepfour);
+    const response = await getDoc(data.entTransactionId);
+    console.log(response);
 });
+
+export const getDoc = async (transactionId) => {
+    console.log(transactionId);
+    try {
+        const eSignStepfour = await axios.post(
+            "https://api.digitap.ai/clickwrap/v1/get-doc-url",
+            {
+                transactionId: `${transactionId}`,
+            },
+            {
+                headers: {
+                    ent_authorization: process.env.DIGITAP_AUTH_KEY,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        console.log(eSignStepfour);
+        return eSignStepfour;
+    } catch (error) {
+        console.log(error.data.message);
+    }
+};
