@@ -118,7 +118,7 @@ export const getDoc = async (transactionId) => {
             eSignStepfour.data.model.previewUrl
         );
 
-        const buffer = Buffer.from(eSignStepfive.data);
+        const buffer = Buffer.from(eSignStepfive.data, "utf-8");
 
         // Use the utility function to upload the PDF buffer
         const result = await uploadDocs(docs, null, null, {
