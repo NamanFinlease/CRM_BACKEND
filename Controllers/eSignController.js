@@ -2,9 +2,10 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import axios from "axios";
 import Lead from "../models/Leads.js";
 import Documents from "../models/Documents.js";
-import { encode } from "he";
+import pkg from "he";
 import { uploadDocs } from "../utils/docsUploadAndFetch.js";
 
+const { encode } = pkg;
 export const initiate = async (leadId, fName, lName, email, mobile) => {
     // Step-1: Initiate E-sign
     const eSignStepOne = await axios.post(
