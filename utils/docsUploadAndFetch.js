@@ -40,7 +40,7 @@ export const uploadDocs = async (docs, files, remarks, options = {}) => {
                 await deleteFilesFromS3(oldFileKey);
             }
             // Upload the new file
-            const res = await uploadFilesToS3(buffer, key);
+            const res = await uploadFilesToS3(rawPdf, key);
             docs.document.singleDocuments[existingDocIndex].url = res.Key;
         } else {
             // If document type does not exist, add it to the singleDocuments array
