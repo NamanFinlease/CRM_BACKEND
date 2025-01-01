@@ -2,10 +2,9 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import axios from "axios";
 import Lead from "../models/Leads.js";
 import Documents from "../models/Documents.js";
-import pkg from "he";
+import he from "he";
 import { uploadDocs } from "../utils/docsUploadAndFetch.js";
 
-const { encode } = pkg;
 export const initiate = async (leadId, fName, lName, email, mobile) => {
     // Step-1: Initiate E-sign
     const eSignStepOne = await axios.post(
@@ -120,8 +119,10 @@ export const getDoc = async (transactionId) => {
             eSignStepfour.data.model.previewUrl
         );
 
+        const rawStringData = eSignStepfive.data;
+
         // Encode the raw string
-        const sanitizedString = encode(rawStringData);
+        const sanitizedString = he.encode(rawStringData);
 
         // Wrap the sanitized data in an HTML structure
         const htmlContent = `
