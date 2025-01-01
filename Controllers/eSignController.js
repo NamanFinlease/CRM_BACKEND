@@ -1,5 +1,8 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import axios from "axios";
+import Lead from "../models/Leads.js";
+import Documents from "../models/Documents.js";
+import { uploadDocs } from "../utils/docsUploadAndFetch.js";
 
 export const initiate = async (fName, lName, email, mobile) => {
     // Step-1: Initiate E-sign
@@ -68,13 +71,28 @@ export const eSignWebhook = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Document not signed!!");
     }
-    const response = await getDoc(data.entTransactionId);
-    console.log(response);
+
+    const response = await getDoc(
+        data["signers-info"][0].mobile,
+        data.entTransactionId
+    );
+
+    if (!response.success) {
+        res.status(400);
+        throw new Error(response.message);
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Document signed and saved successfully.",
+    });
 });
 
-export const getDoc = async (transactionId) => {
-    console.log(transactionId);
+export const getDoc = async (mobile, transactionId) => {
     try {
+        const lead = await Lead.findOne({ mobile: mobile });
+        const docs = await Documents.findOne({ _id: lead.documents });
+
         const eSignStepfour = await axios.post(
             "https://api.digitap.ai/clickwrap/v1/get-doc-url",
             {
@@ -93,7 +111,20 @@ export const getDoc = async (transactionId) => {
         );
 
         const buffer = Buffer.from(eSignStepfive.data);
-        return buffer;
+
+        // Use the utility function to upload the PDF buffer
+        const result = await uploadDocs(docs, null, null, {
+            isBuffer: true,
+            buffer: buffer,
+            fieldName: "sanctionLetter",
+        });
+        if (!result) {
+            return { success: false, message: "Failed to upload PDF." };
+        }
+        return {
+            success: true,
+            message: "File uploaded.",
+        };
     } catch (error) {
         console.log(error.data.message);
     }
