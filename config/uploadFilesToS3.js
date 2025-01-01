@@ -11,14 +11,22 @@ const s3 = new S3({ region, accessKeyId, secretAccessKey });
 async function uploadFilesToS3(buffer, key) {
     const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
     try {
+        let fileSize;
+
+        // Determine if the input is a buffer or a file
+        if (Buffer.isBuffer(buffer)) {
+            fileSize = input.length; // For buffers, use the `length` property
+        } else if (input && input.size) {
+            fileSize = input.size; // For file objects, use the `size` property
+        }
         // Check file size before uploading
-        if (buffer.length > MAX_FILE_SIZE) {
+        if (fileSize > MAX_FILE_SIZE) {
             throw new Error("File size exceeds 25 MB");
         }
 
         var params = {
             Bucket: bucketName,
-            Body: buffer,
+            Body: Buffer.isBuffer(buffer) ? buffer : buffer.stream(),
             Key: key,
         };
         return await s3.upload(params).promise();

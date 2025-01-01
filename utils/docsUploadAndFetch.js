@@ -26,10 +26,10 @@ export const uploadDocs = async (docs, files, remarks, options = {}) => {
     };
 
     if (rawPdf && rawPdfKey) {
-        const key = `${docs.pan}/${fieldName}-${Date.now()}.pdf`;
+        const key = `${docs.pan}/${rawPdfKey}-${Date.now()}.pdf`;
         // Check if the document type already exists in the lead's document.singleDocument array
         const existingDocIndex = docs.document.singleDocuments.findIndex(
-            (doc) => doc.type === fieldName
+            (doc) => doc.type === rawPdfKey
         );
 
         if (existingDocIndex !== -1) {
@@ -44,10 +44,10 @@ export const uploadDocs = async (docs, files, remarks, options = {}) => {
             docs.document.singleDocuments[existingDocIndex].url = res.Key;
         } else {
             // If document type does not exist, add it to the singleDocuments array
-            const res = await uploadFilesToS3(buffer, key);
+            const res = await uploadFilesToS3(rawPdf, key);
             singleDocUpdates.push({
-                name: fieldName,
-                type: fieldName,
+                name: rawPdfKey,
+                type: rawPdfKey,
                 url: res.Key,
             });
         }
