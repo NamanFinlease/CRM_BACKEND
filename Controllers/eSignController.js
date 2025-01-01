@@ -141,7 +141,7 @@ export const getDoc = async (transactionId) => {
             `;
 
         // Write the HTML content to a local file
-        fs.writeFileSync("Testing.html", htmlContent, "utf8");
+        fs.writeFileSync("./Testing.html", htmlContent, "utf8");
 
         const buffer = Buffer.from(htmlContent, "utf-8");
 
