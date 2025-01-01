@@ -2,6 +2,7 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import axios from "axios";
 import Lead from "../models/Leads.js";
 import Documents from "../models/Documents.js";
+import { encode } from "he";
 import { uploadDocs } from "../utils/docsUploadAndFetch.js";
 
 export const initiate = async (leadId, fName, lName, email, mobile) => {
@@ -118,7 +119,25 @@ export const getDoc = async (transactionId) => {
             eSignStepfour.data.model.previewUrl
         );
 
-        const buffer = Buffer.from(eSignStepfive.data, "utf-8");
+        // Encode the raw string
+        const sanitizedString = encode(rawStringData);
+
+        // Wrap the sanitized data in an HTML structure
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Generated HTML</title>
+            </head>
+            <body>
+                <pre>${sanitizedString}</pre> <!-- Display sanitized raw data -->
+            </body>
+            </html>
+            `;
+
+        const buffer = Buffer.from(htmlContent, "utf-8");
 
         // Use the utility function to upload the PDF buffer
         const result = await uploadDocs(docs, null, null, {
