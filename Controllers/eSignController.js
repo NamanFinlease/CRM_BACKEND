@@ -92,6 +92,7 @@ export const getDoc = async (mobile, transactionId) => {
     try {
         const lead = await Lead.findOne({ mobile: mobile });
         const docs = await Documents.findOne({ _id: lead.documents });
+        console.log(docs);
 
         const eSignStepfour = await axios.post(
             "https://api.digitap.ai/clickwrap/v1/get-doc-url",
