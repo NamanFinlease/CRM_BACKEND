@@ -4,7 +4,7 @@ import Lead from "../models/Leads.js";
 import Documents from "../models/Documents.js";
 import { uploadDocs } from "../utils/docsUploadAndFetch.js";
 
-export const initiate = async (fName, lName, email, mobile) => {
+export const initiate = async (leadId, fName, lName, email, mobile) => {
     // Step-1: Initiate E-sign
     const eSignStepOne = await axios.post(
         "https://api.digitap.ai/clickwrap/v1/intiate",
@@ -28,6 +28,18 @@ export const initiate = async (fName, lName, email, mobile) => {
             },
         }
     );
+
+    const lead = await Lead.findOneAndUpdate(
+        { _id: leadId },
+        { transactionId: eSignStepOne.data.model.entTransactionId },
+        { new: true }
+    );
+
+    if (!lead) {
+        res.status(404);
+        throw new Error({ success: false, message: "Lead not found." });
+    }
+
     return eSignStepOne;
 };
 
@@ -65,17 +77,12 @@ export const sendLinkToCustomer = async (eSignStepOne, formData) => {
 // @access Public
 export const eSignWebhook = asyncHandler(async (req, res) => {
     const data = req.body;
-    console.log(data);
     if (data["signers-info"][0].status !== "SIGNED") {
-        console.log("Document not signed!!");
         res.status(400);
         throw new Error("Document not signed!!");
     }
 
-    const response = await getDoc(
-        data["signers-info"][0].mobile,
-        data.entTransactionId
-    );
+    const response = await getDoc(data.entTransactionId);
 
     if (!response.success) {
         res.status(400);
@@ -88,9 +95,9 @@ export const eSignWebhook = asyncHandler(async (req, res) => {
     });
 });
 
-export const getDoc = async (mobile, transactionId) => {
+export const getDoc = async (transactionId) => {
     try {
-        const lead = await Lead.findOne({ mobile: mobile });
+        const lead = await Lead.findOne({ transactionId: transactionId });
         const docs = await Documents.findOne({ _id: lead.documents });
         console.log(docs);
 

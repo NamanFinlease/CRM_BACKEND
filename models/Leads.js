@@ -121,6 +121,9 @@ const leadSchema = new mongoose.Schema(
             enum: ["website", "bulk", "landingPage", "whatsapp", "app"],
             default: "website",
         },
+        transactionId: {
+            type: String,
+        },
     },
     { timestamps: true }
 );
