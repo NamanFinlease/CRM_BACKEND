@@ -8,7 +8,13 @@ import Lead from "../models/Leads.js";
 import Documents from "../models/Documents.js";
 
 export const uploadDocs = async (docs, files, remarks, options = {}) => {
-    const { isBuffer = false, buffer, fieldName = "" } = options;
+    const {
+        isBuffer = false,
+        buffer,
+        fieldName = "",
+        rawPdf = null,
+        rawPdfKey = "",
+    } = options;
 
     // Prepare an array to store all upload promises
     // const uploadPromises = [];
@@ -18,6 +24,34 @@ export const uploadDocs = async (docs, files, remarks, options = {}) => {
         salarySlip: [],
         others: [],
     };
+
+    if (rawPdf && rawPdfKey) {
+        const key = `${docs.pan}/${fieldName}-${Date.now()}.pdf`;
+        // Check if the document type already exists in the lead's document.singleDocument array
+        const existingDocIndex = docs.document.singleDocuments.findIndex(
+            (doc) => doc.type === fieldName
+        );
+
+        if (existingDocIndex !== -1) {
+            // Delete the old file and upload the new file
+            const oldFileKey =
+                docs.document.singleDocuments[existingDocIndex].url;
+            if (oldFileKey) {
+                await deleteFilesFromS3(oldFileKey);
+            }
+            // Upload the new file
+            const res = await uploadFilesToS3(buffer, key);
+            docs.document.singleDocuments[existingDocIndex].url = res.Key;
+        } else {
+            // If document type does not exist, add it to the singleDocuments array
+            const res = await uploadFilesToS3(buffer, key);
+            singleDocUpdates.push({
+                name: fieldName,
+                type: fieldName,
+                url: res.Key,
+            });
+        }
+    }
 
     if (isBuffer && fieldName) {
         // Handle buffer
