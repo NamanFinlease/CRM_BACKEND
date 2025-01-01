@@ -15,9 +15,11 @@ async function uploadFilesToS3(buffer, key) {
 
         // Determine if the input is a buffer or a file
         if (Buffer.isBuffer(buffer)) {
-            fileSize = input.length; // For buffers, use the `length` property
-        } else if (input && input.size) {
-            fileSize = input.size; // For file objects, use the `size` property
+            fileSize = buffer.length; // For buffers, use the `length` property
+        } else if (buffer && buffer.size) {
+            fileSize = buffer.size; // For file objects, use the `size` property
+        } else {
+            fileSize = Buffer.byteLength(buffer); // For strings, use `Buffer.byteLength`
         }
         // Check file size before uploading
         if (fileSize > MAX_FILE_SIZE) {
@@ -26,7 +28,7 @@ async function uploadFilesToS3(buffer, key) {
 
         var params = {
             Bucket: bucketName,
-            Body: Buffer.isBuffer(buffer) ? buffer : buffer.stream(),
+            Body: buffer,
             Key: key,
         };
         return await s3.upload(params).promise();
