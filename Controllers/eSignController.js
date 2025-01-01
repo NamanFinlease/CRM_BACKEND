@@ -62,6 +62,7 @@ export const sendLinkToCustomer = async (eSignStepOne, formData) => {
 // @access Public
 export const eSignWebhook = asyncHandler(async (req, res) => {
     const data = req.body;
+    console.log(data);
     if (data["signers-info"][0].status !== "SIGNED") {
         console.log("Document not signed!!");
         res.status(400);
@@ -90,8 +91,9 @@ export const getDoc = async (transactionId) => {
         const eSignStepfive = await axios.get(
             eSignStepfour.data.model.previewUrl
         );
-        console.log(eSignStepfive);
-        return eSignStepfive;
+
+        const buffer = Buffer.from(eSignStepfive.data);
+        return buffer;
     } catch (error) {
         console.log(error.data.message);
     }
