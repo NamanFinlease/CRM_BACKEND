@@ -2,6 +2,7 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import axios from "axios";
 import Lead from "../models/Leads.js";
 import Documents from "../models/Documents.js";
+import fs from "fs";
 import he from "he";
 import { uploadDocs } from "../utils/docsUploadAndFetch.js";
 
@@ -138,6 +139,9 @@ export const getDoc = async (transactionId) => {
             </body>
             </html>
             `;
+
+        // Write the HTML content to a local file
+        fs.writeFileSync("Testing.html", htmlContent, "utf8");
 
         const buffer = Buffer.from(htmlContent, "utf-8");
 
