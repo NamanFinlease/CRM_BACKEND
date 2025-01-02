@@ -1,5 +1,6 @@
 import {
     uploadFilesToS3,
+    uploadEsignedToS3,
     deleteFilesFromS3,
     generatePresignedUrl,
 } from "../config/uploadFilesToS3.js";
@@ -40,11 +41,11 @@ export const uploadDocs = async (docs, files, remarks, options = {}) => {
                 await deleteFilesFromS3(oldFileKey);
             }
             // Upload the new file
-            const res = await uploadFilesToS3(rawPdf, key);
+            const res = await uploadEsignedToS3(rawPdf, key);
             docs.document.singleDocuments[existingDocIndex].url = res.Key;
         } else {
             // If document type does not exist, add it to the singleDocuments array
-            const res = await uploadFilesToS3(rawPdf, key);
+            const res = await uploadEsignedToS3(rawPdf, key);
             singleDocUpdates.push({
                 name: rawPdfKey,
                 type: rawPdfKey,

@@ -9,21 +9,40 @@ const bucketName = process.env.AWS_BUCKET_NAME;
 const s3 = new S3({ region, accessKeyId, secretAccessKey });
 
 // Upload files to S3
-async function uploadFilesToS3(file, key) {
+async function uploadFilesToS3(buffer, key) {
     const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
     try {
-        let fileSize;
+        // Check file size before uploading
+        if (buffer.length > MAX_FILE_SIZE) {
+            throw new Error("File size exceeds 25 MB");
+        }
+
+        var params = {
+            Bucket: bucketName,
+            Body: buffer,
+            Key: key,
+        };
+        return await s3.upload(params).promise();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function uploadEsignedToS3(pdfContent, key) {
+    const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+    try {
         let buffer;
 
-        // Determine if the input is a buffer or a file
-        if (Buffer.isBuffer(file)) {
-            fileSize = file.length; // For buffers, use the `length` property
-        } else if (file && file.size) {
-            fileSize = file.size; // For file objects, use the `size` property
+        // Convert content to a buffer if it's not already
+        if (Buffer.isBuffer(pdfContent)) {
+            buffer = pdfContent;
+        } else if (typeof pdfContent === "string") {
+            buffer = Buffer.from(pdfContent, "binary"); // Ensure binary encoding
         } else {
-            fileSize = Buffer.byteLength(file); // For strings, use `Buffer.byteLength`
-            buffer = Buffer.from(file, "binary");
+            throw new Error("Unsupported content format for PDF");
         }
+
+        const fileSize = buffer.length;
 
         // Check file size before uploading
         if (fileSize > MAX_FILE_SIZE) {
@@ -34,6 +53,7 @@ async function uploadFilesToS3(file, key) {
             Bucket: bucketName,
             Body: buffer,
             Key: key,
+            ContentType: "application/pdf",
         };
         return await s3.upload(params).promise();
     } catch (error) {
@@ -124,6 +144,7 @@ async function renamePanFolder(oldPan, newPan) {
 
 export {
     uploadFilesToS3,
+    uploadEsignedToS3,
     deleteFilesFromS3,
     generatePresignedUrl,
     renamePanFolder,
