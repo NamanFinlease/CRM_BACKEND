@@ -14,12 +14,13 @@ async function uploadFilesToS3(buffer, key) {
         let fileSize;
 
         // Determine if the input is a buffer or a file
-        if (Buffer.isBuffer(buffer)) {
-            fileSize = buffer.length; // For buffers, use the `length` property
-        } else if (buffer && buffer.size) {
-            fileSize = buffer.size; // For file objects, use the `size` property
+        if (Buffer.isBuffer(file)) {
+            fileSize = file.length; // For buffers, use the `length` property
+        } else if (file && file.size) {
+            fileSize = file.size; // For file objects, use the `size` property
         } else {
-            fileSize = Buffer.byteLength(buffer); // For strings, use `Buffer.byteLength`
+            fileSize = Buffer.byteLength(file); // For strings, use `Buffer.byteLength`
+            buffer = Buffer.from(file, "binary");
         }
         // Check file size before uploading
         if (fileSize > MAX_FILE_SIZE) {
