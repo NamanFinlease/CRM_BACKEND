@@ -116,7 +116,9 @@ export const getDoc = async (transactionId) => {
 
         const eSignStepfive = await axios.get(
             eSignStepfour.data.model.previewUrl,
-            { responseType: "arraybuffer" }
+            {
+                responseType: "arraybuffer", // Important to preserve the binary data
+            }
         );
 
         // Use the utility function to upload the PDF buffer
