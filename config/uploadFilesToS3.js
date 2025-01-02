@@ -17,6 +17,7 @@ async function uploadFilesToS3(file, key) {
         // Determine if the input is a buffer or a file
         if (Buffer.isBuffer(file)) {
             fileSize = file.length; // For buffers, use the `length` property
+            buffer = file;
         } else if (file && file.size) {
             fileSize = file.size; // For file objects, use the `size` property
         } else {
