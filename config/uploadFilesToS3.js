@@ -16,13 +16,10 @@ async function uploadFilesToS3(file, key) {
 
         // Determine if the input is a buffer or a file
         if (Buffer.isBuffer(file)) {
-            console.log("It's a buffer");
             fileSize = file.length; // For buffers, use the `length` property
         } else if (file && file.size) {
-            console.log("It's a file object");
             fileSize = file.size; // For file objects, use the `size` property
         } else {
-            console.log("File is a string type");
             fileSize = Buffer.byteLength(file); // For strings, use `Buffer.byteLength`
             buffer = Buffer.from(file, "binary");
         }

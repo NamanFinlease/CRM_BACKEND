@@ -45,6 +45,7 @@ export const generateSanctionLetter = async (
         });
 
         const stepOne = await initiate(
+            lead._id.toString(),
             lead.fName,
             lead.lName,
             lead.personalEmail,
