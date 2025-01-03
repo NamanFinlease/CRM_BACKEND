@@ -3,17 +3,18 @@ import Lead from "../models/Leads.js";
 import Application from "../models/Applications.js";
 import Documents from "../models/Documents.js";
 import Employee from "../models/Employees.js";
-import { postLogs } from "./logs.js";
-import { applicantDetails } from "./applicantPersonalDetails.js";
-import sendEmail from "../utils/sendEmail.js";
 import generateRandomNumber from "../utils/generateRandomNumbers.js";
-import { leadAllocated, otpSent } from "../utils/smsGateway.js";
-import { otpVerified } from "../utils/smsGateway.js";
+import sendEmail from "../utils/sendEmail.js";
 import equifax from "../utils/fetchCibil.js";
-import { checkApproval } from "../utils/checkApproval.js";
-import { postCamDetails } from "./application.js";
 import cibilPdf from "../utils/cibilPdf.js";
 import Otp from "../models/Otp.js";
+import { getNextSequence } from "../models/Counter.js";
+import { postLogs } from "./logs.js";
+import { applicantDetails } from "./applicantPersonalDetails.js";
+import { leadAllocated, otpSent } from "../utils/smsGateway.js";
+import { otpVerified } from "../utils/smsGateway.js";
+import { checkApproval } from "../utils/checkApproval.js";
+import { postCamDetails } from "./application.js";
 import { renamePanFolder } from "../config/uploadFilesToS3.js";
 
 // @desc Create loan leads
@@ -52,7 +53,10 @@ export const createLead = asyncHandler(async (req, res) => {
         });
     }
 
+    const leadNo = await getNextSequence("leadNo", "NMFSPE", 11);
+
     const newLead = await Lead.create({
+        leadNo,
         fName: name[0],
         mName: mName ? mName : name.length === 2 ? name[1] : "",
         lName: lName ?? "",
@@ -143,7 +147,6 @@ export const allocateLead = asyncHandler(async (req, res) => {
         { screenerId },
         { new: true }
     ).populate({ path: "screenerId", select: "-password" });
-    console.log(lead);
 
     if (!lead) {
         throw new Error("Lead not found"); // This error will be caught by the error handler
@@ -525,36 +528,6 @@ export const fetchCibil = asyncHandler(async (req, res) => {
     return res.json({ success: true, value: lead.cibilScore });
 });
 
-// @desc Fetch CIBIL Report
-// @route GET /api/verify/equifax-report/:id
-// @access Private
-export const cibilReport = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const lead = await Lead.findById(id);
-    const docs = await Documents.findById({ _id: lead.documents.toString() });
-
-    if (!lead) {
-        res.status(404);
-        throw new Error("Lead not found!!!");
-    }
-
-    if (lead.screenerId.toString() !== req.employee._id.toString()) {
-        res.status(404);
-        throw new Error(
-            "You are not authorized to fetch CIBIL for this lead!!!"
-        );
-    }
-
-    const report = await cibilPdf(lead, docs);
-    // if (!report.success) {
-    //     res.status(400);
-    //     throw new Error(report.error);
-    // }
-    // return res.json({ success: true });
-
-    return report;
-});
-
 // @desc API for mobile verification
 // @route POST /api/verify/mobile/get-otp
 // @access Public
@@ -583,11 +556,10 @@ export const mobileGetOtp = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Failed to send OTP" });
 });
 
-/**
- * @desc    Verify OTP
- * @route   POST /api/verify/mobile/verify-otp
- * @access  Public
- */
+// @desc Verify OTP
+// @route POST /api/verify/mobile/verify-otp
+// @access Public
+
 export const verifyOtp = asyncHandler(async (req, res) => {
     const { mobile, otp } = req.body;
 

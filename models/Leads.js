@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const leadSchema = new mongoose.Schema(
     {
+        leadNo: {
+            type: String,
+            required: true,
+            unique: true,
+        },
         fName: {
             type: String,
             required: true,
