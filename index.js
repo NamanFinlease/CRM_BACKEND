@@ -70,7 +70,7 @@ app.set("views", join(process.cwd(), "views"));
 
 // Routes
 app.get("/", (req, res) => {
-    res.send("API is running.......");
+    res.send(" UAT  API is running.......");
 });
 app.get(`/verify-aadhaar/:id`, (req, res) => {
     res.render("otpRequest");
